@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/nurimbet/Downloads/HybridAerialVehicle/sdfReader.cpp
+dart/dart.h
+/home/nurimbet/Downloads/HybridAerialVehicle/dart/dart.h
+dart/dynamics/Skeleton.h
+/home/nurimbet/Downloads/HybridAerialVehicle/dart/dynamics/Skeleton.h
+dart/simulation/World.h
+/home/nurimbet/Downloads/HybridAerialVehicle/dart/simulation/World.h
+dart/utils/sdf/SdfParser.h
+/home/nurimbet/Downloads/HybridAerialVehicle/dart/utils/sdf/SdfParser.h
+dart/collision/CollisionDetector.h
+/home/nurimbet/Downloads/HybridAerialVehicle/dart/collision/CollisionDetector.h
+

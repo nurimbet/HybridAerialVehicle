@@ -1,0 +1,3 @@
+/home/nurimbet/Downloads/HybridAerialVehicle/build/CMakeFiles/edit_cache.dir
+/home/nurimbet/Downloads/HybridAerialVehicle/build/CMakeFiles/rebuild_cache.dir
+/home/nurimbet/Downloads/HybridAerialVehicle/build/CMakeFiles/sdfReader.dir

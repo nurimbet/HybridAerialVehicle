@@ -16,6 +16,7 @@ const double default_damping_coefficient = 0.001;
 #include "dart/dynamics/Skeleton.h"
 #include "dart/simulation/World.h"
 #include "dart/utils/sdf/SdfParser.h"
+#include "dart/collision/CollisionDetector.h"
 #define EIGEN_DONT_ALIGN_STATICALLY 1
 using namespace dart::common;
 using namespace dart::dynamics;
@@ -23,7 +24,7 @@ using namespace dart::simulation;
 using namespace dart::gui;
 using namespace dart::utils;
 using namespace dart::math;
-
+namespace dc = dart::collision;
 
 class MyWindow : public SimWindow
 {
@@ -33,7 +34,7 @@ class MyWindow : public SimWindow
 //            : 
     {
         setWorld(world);
-        mZoom = 0.0003;
+        mZoom = 0.005;
 
         //mController = std::unique_ptr<Controller>
         //    (new Controller(mWorld->getSkeleton("chicago")));
@@ -44,8 +45,8 @@ class MyWindow : public SimWindow
         void drawSkels() {
             glEnable(GL_LIGHTING);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            static double alpha = 0;
-    /*        Eigen::Matrix3d mat;
+    /*        static double alpha = 0;
+            Eigen::Matrix3d mat;
             mat = Eigen::AngleAxisd(alpha / 181.0 * M_PI, Eigen::Vector3d::UnitZ());
             alpha += 0.5;
 
@@ -193,6 +194,7 @@ SkeletonPtr createBall()
     // Put the body into position
     Eigen::Isometry3d tf(Eigen::Isometry3d::Identity());
     tf.translation() = Eigen::Vector3d(1180.0,1125.0, 200.0);
+    //tf.translation() = Eigen::Vector3d(15.0,12.0, 5.0);
     body->getParentJoint()->setTransformFromParentBodyNode(tf);
     setAllColors(ball, dart::Color::Red());
 
@@ -238,7 +240,9 @@ int main(int argc, char* argv[])
 
     WorldPtr world = std::make_shared<World>();
     world->setGravity(Eigen::Vector3d(0.0, 0.0, -9.8));
-
+    //world->getConstraintSolver()->setCollisionDetector(new dc::DARTCollisionDetector());
+    world->getConstraintSolver()->setCollisionDetector(
+      new dc::BulletCollisionDetector());
 #ifdef HAVE_BULLET_COLLISION
     //world->getConstraintSolver()->setCollisionDetector(
     //         new dart::collision::BulletCollisionDetector());
@@ -255,22 +259,29 @@ int main(int argc, char* argv[])
     {
         std::cout << "There has been a collision" << std::endl;
     }
+    if(world->checkCollision())
+    {
+
+        std::cout << "There has been a collision" << std::endl;
+
+    }
     // Create a window for rendering the world and handling user input
     
-/*
+
     int ii;
     Eigen::Isometry3d tf(Eigen::Isometry3d::Identity());
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-    int maxnum = 10000;
+    int maxnum = 100;
     for(ii = 0; ii < maxnum; ii++)
     {
         tf.translation() = Eigen::Vector3d(rand()%1000, rand()%1000, rand()%200);
         ball->getJoint(0)->setTransformFromParentBodyNode(tf);
         world->checkCollision();
+      //  detector->detectCollision(true, true);
     }     
     std::chrono::steady_clock::time_point end= std::chrono::steady_clock::now();
     std::cout << "Time to collision check "<<maxnum<<"  = " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " milliseconds (total)"<<std::endl;
-*/
+
  
    MyWindow window(world);
 
