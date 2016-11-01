@@ -7,14 +7,16 @@
       <collision name="collision">
         <geometry>
           <mesh>
-            <uri>/home/nurimbet/Downloads/Chicago.stl</uri>
+            <uri>/home/nurimbet/Downloads/Chicago_12km.stl</uri>
+            <scale> 1000 1000 1000 </scale>
           </mesh>
         </geometry>
       </collision>
       <visual name="visual">
         <geometry>
           <mesh>
-            <uri>/home/nurimbet/Downloads/Chicago.stl</uri>
+            <uri>/home/nurimbet/Downloads/Chicago_12km.stl</uri>
+            <scale> 1000 1000 1000 </scale>
           </mesh>
         </geometry>
         <cast_shadows>false</cast_shadows>

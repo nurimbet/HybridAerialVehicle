@@ -35,6 +35,8 @@ dart/dart.h
 -
 
 /home/nurimbet/Downloads/HybridAerialVehicle/util.cpp
+dart/utils/sdf/SdfParser.h
+/home/nurimbet/Downloads/HybridAerialVehicle/dart/utils/sdf/SdfParser.h
 util.h
 /home/nurimbet/Downloads/HybridAerialVehicle/util.h
 

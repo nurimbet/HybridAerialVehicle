@@ -4,7 +4,9 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/home/nurimbet/Downloads/HybridAerialVehicle/sdfReader.cpp" "/home/nurimbet/Downloads/HybridAerialVehicle/build/CMakeFiles/sdfReader.dir/sdfReader.cpp.o"
+  "/home/nurimbet/Downloads/HybridAerialVehicle/main.cpp" "/home/nurimbet/Downloads/HybridAerialVehicle/build2/CMakeFiles/robt605_project4.dir/main.cpp.o"
+  "/home/nurimbet/Downloads/HybridAerialVehicle/mywindow.cpp" "/home/nurimbet/Downloads/HybridAerialVehicle/build2/CMakeFiles/robt605_project4.dir/mywindow.cpp.o"
+  "/home/nurimbet/Downloads/HybridAerialVehicle/util.cpp" "/home/nurimbet/Downloads/HybridAerialVehicle/build2/CMakeFiles/robt605_project4.dir/util.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 

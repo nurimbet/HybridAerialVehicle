@@ -46,7 +46,7 @@ EQUALS = =
 CMAKE_SOURCE_DIR = /home/nurimbet/Downloads/HybridAerialVehicle
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/nurimbet/Downloads/HybridAerialVehicle/build
+CMAKE_BINARY_DIR = /home/nurimbet/Downloads/HybridAerialVehicle/build2
 
 # Include any dependencies generated for this target.
 include CMakeFiles/robt605_project4.dir/depend.make
@@ -59,7 +59,7 @@ include CMakeFiles/robt605_project4.dir/flags.make
 
 CMakeFiles/robt605_project4.dir/util.cpp.o: CMakeFiles/robt605_project4.dir/flags.make
 CMakeFiles/robt605_project4.dir/util.cpp.o: ../util.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/nurimbet/Downloads/HybridAerialVehicle/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/robt605_project4.dir/util.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/nurimbet/Downloads/HybridAerialVehicle/build2/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/robt605_project4.dir/util.cpp.o"
 	/usr/bin/c++   $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/robt605_project4.dir/util.cpp.o -c /home/nurimbet/Downloads/HybridAerialVehicle/util.cpp
 
 CMakeFiles/robt605_project4.dir/util.cpp.i: cmake_force
@@ -83,7 +83,7 @@ CMakeFiles/robt605_project4.dir/util.cpp.o.provides.build: CMakeFiles/robt605_pr
 
 CMakeFiles/robt605_project4.dir/main.cpp.o: CMakeFiles/robt605_project4.dir/flags.make
 CMakeFiles/robt605_project4.dir/main.cpp.o: ../main.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/nurimbet/Downloads/HybridAerialVehicle/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/robt605_project4.dir/main.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/nurimbet/Downloads/HybridAerialVehicle/build2/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/robt605_project4.dir/main.cpp.o"
 	/usr/bin/c++   $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/robt605_project4.dir/main.cpp.o -c /home/nurimbet/Downloads/HybridAerialVehicle/main.cpp
 
 CMakeFiles/robt605_project4.dir/main.cpp.i: cmake_force
@@ -107,7 +107,7 @@ CMakeFiles/robt605_project4.dir/main.cpp.o.provides.build: CMakeFiles/robt605_pr
 
 CMakeFiles/robt605_project4.dir/mywindow.cpp.o: CMakeFiles/robt605_project4.dir/flags.make
 CMakeFiles/robt605_project4.dir/mywindow.cpp.o: ../mywindow.cpp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/nurimbet/Downloads/HybridAerialVehicle/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/robt605_project4.dir/mywindow.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/nurimbet/Downloads/HybridAerialVehicle/build2/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/robt605_project4.dir/mywindow.cpp.o"
 	/usr/bin/c++   $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/robt605_project4.dir/mywindow.cpp.o -c /home/nurimbet/Downloads/HybridAerialVehicle/mywindow.cpp
 
 CMakeFiles/robt605_project4.dir/mywindow.cpp.i: cmake_force
@@ -142,13 +142,13 @@ robt605_project4: CMakeFiles/robt605_project4.dir/util.cpp.o
 robt605_project4: CMakeFiles/robt605_project4.dir/main.cpp.o
 robt605_project4: CMakeFiles/robt605_project4.dir/mywindow.cpp.o
 robt605_project4: CMakeFiles/robt605_project4.dir/build.make
-robt605_project4: /usr/local/lib/libdartd.so.5.1.4
+robt605_project4: /usr/local/lib/libdart.so.5.1.4
 robt605_project4: /usr/local/lib/libompl.so
 robt605_project4: /usr/lib/i386-linux-gnu/libBulletDynamics.so
 robt605_project4: /usr/lib/i386-linux-gnu/libBulletCollision.so
 robt605_project4: /usr/lib/i386-linux-gnu/libLinearMath.so
 robt605_project4: /usr/lib/i386-linux-gnu/libBulletSoftBody.so
-robt605_project4: /usr/local/lib/libdart-cored.so.5.1.4
+robt605_project4: /usr/local/lib/libdart-core.so.5.1.4
 robt605_project4: /usr/lib/i386-linux-gnu/libccd.so
 robt605_project4: /usr/local/lib/libfcl.so
 robt605_project4: /usr/lib/i386-linux-gnu/libassimp.so
@@ -172,7 +172,7 @@ robt605_project4: /usr/lib/i386-linux-gnu/libBulletCollision.so
 robt605_project4: /usr/lib/i386-linux-gnu/libLinearMath.so
 robt605_project4: /usr/lib/i386-linux-gnu/libBulletSoftBody.so
 robt605_project4: CMakeFiles/robt605_project4.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/nurimbet/Downloads/HybridAerialVehicle/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX executable robt605_project4"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/nurimbet/Downloads/HybridAerialVehicle/build2/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX executable robt605_project4"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/robt605_project4.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -191,6 +191,6 @@ CMakeFiles/robt605_project4.dir/clean:
 .PHONY : CMakeFiles/robt605_project4.dir/clean
 
 CMakeFiles/robt605_project4.dir/depend:
-	cd /home/nurimbet/Downloads/HybridAerialVehicle/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/nurimbet/Downloads/HybridAerialVehicle /home/nurimbet/Downloads/HybridAerialVehicle /home/nurimbet/Downloads/HybridAerialVehicle/build /home/nurimbet/Downloads/HybridAerialVehicle/build /home/nurimbet/Downloads/HybridAerialVehicle/build/CMakeFiles/robt605_project4.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/nurimbet/Downloads/HybridAerialVehicle/build2 && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/nurimbet/Downloads/HybridAerialVehicle /home/nurimbet/Downloads/HybridAerialVehicle /home/nurimbet/Downloads/HybridAerialVehicle/build2 /home/nurimbet/Downloads/HybridAerialVehicle/build2 /home/nurimbet/Downloads/HybridAerialVehicle/build2/CMakeFiles/robt605_project4.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/robt605_project4.dir/depend
 
