@@ -2,6 +2,7 @@
 #define MYWINDOW_H
 
 #include <dart/dart.h>
+#include <Eigen/Eigen>
 
 namespace ds = dart::simulation;
 namespace dg = dart::gui;
@@ -16,6 +17,8 @@ class MyWindow : public dart::gui::SimWindow {
 
   /// fixes rendering
   void drawSkels() override;
+  void setViewTrack(const Eigen::Vector3d& v);
+
 };
 
 #endif  // MYWINDOW_H
