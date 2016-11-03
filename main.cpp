@@ -131,7 +131,8 @@ int main(int argc, char *argv[]) {
     ds::WorldPtr world = std::make_shared<ds::World>();
     //    world->setGravity(Eigen::Vector3d(0.0, 0.0, -9.8));
 
-    dd::SkeletonPtr chicago =du::SdfParser::readSkeleton(("/home/arms/Downloads/HybridAerialVehicle/Chicago.sdf"));
+    //dd::SkeletonPtr chicago =du::SdfParser::readSkeleton(("/home/arms/Downloads/HybridAerialVehicle/Chicago.sdf"));
+    dd::SkeletonPtr chicago =du::SdfParser::readSkeleton(("/home/nurimbet/Research/HybridAerialVehicle/Chicago.sdf"));
     dd::SkeletonPtr ball1 = dd::Skeleton::create("ball1");
 
     /*
@@ -142,7 +143,7 @@ int main(int argc, char *argv[]) {
      */
     Eigen::Isometry3d tf(Eigen::Isometry3d::Identity());
     tf.translation() = Eigen::Vector3d(0, 0, 0);
-    Eigen::Vector3d size(10,10,10);
+    Eigen::Vector3d size(3,3,3);
 
     createBall(ball1, size,tf) ; 
 
@@ -159,8 +160,8 @@ int main(int argc, char *argv[]) {
     Simple3DEnvironment env;
     env.setWorld(world);
 
-    Eigen::Vector3d start(0.0,0.0,50.0);
-    Eigen::Vector3d finish(2000,2000,20);
+    Eigen::Vector3d start(0.0,0.0,15.0);
+    Eigen::Vector3d finish(2000,3000,70);
 
     if(env.plan(start,finish))
     {
@@ -173,23 +174,24 @@ int main(int argc, char *argv[]) {
     ball1->getJoint(0)->setTransformFromParentBodyNode(tf);
     MyWindow window(world);
 
-    std::thread t([&](){
+    std::thread t([&]()
+    {
             std::this_thread::sleep_for(std::chrono::seconds(5));
-
-            while(true){
-            std::ifstream fin("result.txt");
-            Eigen::Isometry3d tf=Eigen::Isometry3d::Identity();
-            while(!fin.eof())
+            while(true)
             {
-            double x,y,z;
-            fin >> x >> y >> z;
-            tf.translation() = Eigen::Vector3d(x,y,z);
-            window.setViewTrack(Eigen::Vector3d(x,y,z));
-            ball1->getJoint(0)->setTransformFromParentBodyNode(tf);
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));			
+                std::ifstream fin("result.txt");
+                Eigen::Isometry3d tf=Eigen::Isometry3d::Identity();
+                while(!fin.eof())
+                {
+                    double x,y,z;
+                    fin >> x >> y >> z;
+                    tf.translation() = Eigen::Vector3d(x,y,z);
+                    window.setViewTrack(Eigen::Vector3d(x,y,z));
+                    ball1->getJoint(0)->setTransformFromParentBodyNode(tf);
+                    std::this_thread::sleep_for(std::chrono::milliseconds(10));			
+                }
             }
-            }
-            });
+    });
 
 
     glutInit(&argc, argv);

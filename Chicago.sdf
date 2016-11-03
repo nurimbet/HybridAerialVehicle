@@ -7,7 +7,10 @@
       <collision name="collision">
         <geometry>
           <mesh>
+            <!--
             <uri>/home/arms/Downloads/HybridAerialVehicle/Chicago_12km.stl</uri>
+            -->
+            <uri>/home/nurimbet/Research/HybridAerialVehicle/Chicago_12km.stl</uri>
             <scale> 1000 1000 1000 </scale>
           </mesh>
         </geometry>
@@ -15,7 +18,10 @@
       <visual name="visual">
         <geometry>
           <mesh>
+            <!--
             <uri>/home/arms/Downloads/HybridAerialVehicle/Chicago_12km.stl</uri>
+            -->
+            <uri>/home/nurimbet/Research/HybridAerialVehicle/Chicago_12km.stl</uri>
             <scale> 1000 1000 1000 </scale>
           </mesh>
         </geometry>

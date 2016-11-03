@@ -1,4 +1,4 @@
-project(robt605_project4)
+project(Hybrid)
 
 cmake_minimum_required(VERSION 2.8)
 

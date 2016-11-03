@@ -13,7 +13,7 @@ void MyWindow::drawSkels() {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     Eigen::Matrix3d rot;
-    rot = Eigen::AngleAxisd(-M_PI/4.0, Eigen::Vector3d::UnitX())*Eigen::AngleAxisd(M_PI/4.0, Eigen::Vector3d::UnitZ());//*Eigen::AngleAxisd(M_PI/8.0, Eigen::Vector3d::UnitY());
+    rot = Eigen::AngleAxisd(-M_PI/4.0, Eigen::Vector3d::UnitX())*Eigen::AngleAxisd(M_PI/2.0, Eigen::Vector3d::UnitZ());//*Eigen::AngleAxisd(-M_PI/4.0, Eigen::Vector3d::UnitX());
     Eigen::Quaterniond quat(rot);    
 
     mTrackBall.setQuaternion(quat);
@@ -29,5 +29,5 @@ void MyWindow::drawSkels() {
 
 void MyWindow::setViewTrack(const Eigen::Vector3d& v)
 {
-    mTrans = -v*1000.0-Eigen::Vector3d(20,20,20);
+    mTrans = -v*1000.0;//-Eigen::Vector3d(20,20,20);
 }
