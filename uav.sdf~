@@ -10,8 +10,8 @@
             <!--
             <uri>/home/nurimbet/Research/HybridAerialVehicle/Chicago_12km.stl</uri>
             -->
-            <uri>/home/arms/Downloads/HybridAerialVehicle/Chicago_12km.stl</uri>
-            <scale> 1000 1000 1000 </scale>
+            <uri>/home/arms/Downloads/HybridAerialVehicle/uav.STL</uri>
+            <!--<scale> 1000 1000 1000 </scale>-->
           </mesh>
         </geometry>
       </collision>
@@ -21,8 +21,8 @@
             <!--
             <uri>/home/nurimbet/Research/HybridAerialVehicle/Chicago_12km.stl</uri>
             -->
-            <uri>/home/arms/Downloads/HybridAerialVehicle/Chicago_12km.stl</uri>
-            <scale> 1000 1000 1000 </scale>
+            <uri>/home/arms/Downloads/HybridAerialVehicle/uav.STL</uri>
+            <!--<scale> 1000 1000 1000 </scale>-->
           </mesh>
         </geometry>
         <cast_shadows>false</cast_shadows>

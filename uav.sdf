@@ -1,18 +1,14 @@
 <?xml version="1.0" ?>
 <sdf version="1.5">
-  <model name="Chicago">
+  <model name="UAV">
     <static>true</static>
     <pose>0 0 0 0 0 0</pose>
-    <link name="buildings">
+    <link name="VEHICLE">
       <collision name="collision">
         <geometry>
-          <mesh>
-            <!--
-            <uri>/home/nurimbet/Research/HybridAerialVehicle/Chicago_12km.stl</uri>
-            -->
-            <uri>/home/arms/Downloads/HybridAerialVehicle/Chicago_12km.stl</uri>
-            <scale> 1000 1000 1000 </scale>
-          </mesh>
+           <sphere> 
+                <radius>3</radius>
+           </sphere> 
         </geometry>
       </collision>
       <visual name="visual">
@@ -21,8 +17,10 @@
             <!--
             <uri>/home/nurimbet/Research/HybridAerialVehicle/Chicago_12km.stl</uri>
             -->
-            <uri>/home/arms/Downloads/HybridAerialVehicle/Chicago_12km.stl</uri>
-            <scale> 1000 1000 1000 </scale>
+            <uri>/home/arms/Downloads/HybridAerialVehicle/uav1.stl</uri>
+            <scale> 0.001 0.001 0.001 </scale>
+            <pose>0 0 0 -0.57 0 0</pose>
+            <!--<scale> 1000 1000 1000 </scale>-->
           </mesh>
         </geometry>
         <cast_shadows>false</cast_shadows>

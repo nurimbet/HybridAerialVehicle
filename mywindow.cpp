@@ -16,7 +16,7 @@ void MyWindow::drawSkels() {
     rot = Eigen::AngleAxisd(-M_PI/4.0, Eigen::Vector3d::UnitX())*Eigen::AngleAxisd(M_PI/2.0, Eigen::Vector3d::UnitZ());//*Eigen::AngleAxisd(-M_PI/4.0, Eigen::Vector3d::UnitX());
     Eigen::Quaterniond quat(rot);    
 
-    mTrackBall.setQuaternion(quat);
+    //mTrackBall.setQuaternion(quat);
     //mEye = viewTrack+ Eigen::Vector3d(10, 10, 10);
     //mUp = viewTrack - Eigen::Vector3d(10, 10, 10);
     SimWindow::drawSkels();

@@ -40,6 +40,6 @@ void createBox(dd::SkeletonPtr& skl, const Eigen::Vector3d& size,
 }
 
 
-inline void moveSkeleton(dd::SkeletonPtr& skl, const Eigen::Isometry3d& pose) {
+void moveSkeleton(dd::SkeletonPtr& skl, const Eigen::Isometry3d& pose) {
   dd::FreeJoint::setTransform(skl.get(), pose);
 }
