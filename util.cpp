@@ -14,7 +14,7 @@ void setAllColors(const dd::SkeletonPtr& object, const Eigen::Vector3d& color) {
 
 void createBall(dd::SkeletonPtr& skl, const Eigen::Vector3d& size,
                 const Eigen::Isometry3d& tf) {
-  dd::BodyNode* bn = skl->createJointAndBodyNodePair<dd::WeldJoint>().second;
+  dd::BodyNode* bn = skl->createJointAndBodyNodePair<dd::FreeJoint>().second;
 
   std::shared_ptr<dd::EllipsoidShape> shape =
       std::make_shared<dd::EllipsoidShape>(size);
