@@ -143,9 +143,9 @@ int main(int argc, char *argv[]) {
      */
     Eigen::Isometry3d tf(Eigen::Isometry3d::Identity());
     tf.translation() = Eigen::Vector3d(0, 0, 0);
-    Eigen::Vector3d size(3,3,3);
+    Eigen::Vector3d size(5,3,1);
 
-    createBall(ball1, size,tf) ; 
+    createBox(ball1, size,tf) ; 
 
     setAllColors(ball1, Eigen::Vector3d(1,0.2,0.2));
     //
