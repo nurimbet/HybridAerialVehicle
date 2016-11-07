@@ -211,14 +211,10 @@ int main(int argc, char *argv[]) {
                 Eigen::Isometry3d tf=Eigen::Isometry3d::Identity();
                 tf.rotate(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitY())*Eigen::AngleAxisd(-M_PI/2, Eigen::Vector3d::UnitX()));
                 
-                if (abs(angleRot - angleRotOld) > M_PI/9) 
-                {
-                    tf.rotate(Eigen::AngleAxisd(angleRot, Eigen::Vector3d::UnitY())); 
+                if (abs(angleRot - angleRotOld) < M_PI/9) {
+                    angleRot = angleRotOld;
                 }
-                else    
-                {
-                    tf.rotate(Eigen::AngleAxisd(angleRotOld, Eigen::Vector3d::UnitY())); 
-                }
+                tf.rotate(Eigen::AngleAxisd(angleRot, Eigen::Vector3d::UnitY())); 
                 tf.translation() = Eigen::Vector3d(x,y,z);
                
                 moveSkeleton(ball1, tf);
