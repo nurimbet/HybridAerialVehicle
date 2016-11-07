@@ -8,6 +8,7 @@ MyWindow::MyWindow(const ds::WorldPtr& world)
 }
 
 void MyWindow::drawSkels() {
+    std::lock_guard<std::mutex> lock(readMutex);
     // Make sure lighting is turned on and that polygons get filled in
     glEnable(GL_LIGHTING);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -29,5 +30,6 @@ void MyWindow::drawSkels() {
 
 void MyWindow::setViewTrack(const Eigen::Vector3d& v)
 {
+    std::lock_guard<std::mutex> lock(readMutex);
     mTrans = -v*1000.0;//-Eigen::Vector3d(20,20,20);
 }
