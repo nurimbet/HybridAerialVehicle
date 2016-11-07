@@ -3,7 +3,7 @@
 MyWindow::MyWindow(const ds::WorldPtr& world) 
 { 
     setWorld(world); 
-    mZoom = 0.020;
+    mZoom = 0.040;
     mTranslate = true;
 }
 
@@ -13,9 +13,9 @@ void MyWindow::drawSkels() {
     glEnable(GL_LIGHTING);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    Eigen::Matrix3d rot;
-    rot = Eigen::AngleAxisd(-M_PI/4.0, Eigen::Vector3d::UnitX())*Eigen::AngleAxisd(M_PI/2.0, Eigen::Vector3d::UnitZ());//*Eigen::AngleAxisd(-M_PI/4.0, Eigen::Vector3d::UnitX());
-    Eigen::Quaterniond quat(rot);    
+    //Eigen::Matrix3d rot;
+    //rot = Eigen::AngleAxisd(-M_PI/4.0, Eigen::Vector3d::UnitX())*Eigen::AngleAxisd(M_PI/2.0, Eigen::Vector3d::UnitZ());//*Eigen::AngleAxisd(-M_PI/4.0, Eigen::Vector3d::UnitX());
+    //Eigen::Quaterniond quat(rot);    
 
     //mTrackBall.setQuaternion(quat);
     //mEye = viewTrack+ Eigen::Vector3d(10, 10, 10);
@@ -28,8 +28,11 @@ void MyWindow::drawSkels() {
 
 }
 
-void MyWindow::setViewTrack(const Eigen::Vector3d& v)
+void MyWindow::setViewTrack(const Eigen::Vector3d& v, const Eigen::AngleAxisd& rot)
 {
     std::lock_guard<std::mutex> lock(readMutex);
     mTrans = -v*1000.0;//-Eigen::Vector3d(20,20,20);
+    Eigen::Quaterniond quat(Eigen::AngleAxisd(-3*M_PI/8.0, Eigen::Vector3d::UnitX())*rot);    
+
+    mTrackBall.setQuaternion(quat);
 }

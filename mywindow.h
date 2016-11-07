@@ -17,9 +17,9 @@ class MyWindow : public dart::gui::SimWindow {
 
   /// fixes rendering
   void drawSkels() override;
-  void setViewTrack(const Eigen::Vector3d& v);
+  void setViewTrack(const Eigen::Vector3d& v, const Eigen::AngleAxisd& rot);
  private:
- std::mutex renderMutex;
+ std::mutex readMutex;
 };
 
 #endif  // MYWINDOW_H
