@@ -3,7 +3,7 @@
 MyWindow::MyWindow(const ds::WorldPtr& world) 
 { 
     setWorld(world); 
-    mZoom = 0.010;
+    mZoom = 0.020;
     mTranslate = true;
 }
 

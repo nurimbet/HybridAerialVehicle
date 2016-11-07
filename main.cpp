@@ -3,10 +3,10 @@
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/geometric/planners/prm/PRM.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
-#include <Eigen/Eigen>
-#include <iostream>
-#include <fstream>
-#include <thread>
+#include <Eigen/Eigen> 
+#include <iostream> 
+#include <fstream> 
+#include <thread> 
 #include <chrono>
 
 #include "config.h"
@@ -189,26 +189,35 @@ int main(int argc, char *argv[]) {
 
     MyWindow window(world);
 
+    double oldx, oldy, oldz,angleRot = 0.0;
     std::thread t([&]()
-            {
-            std::this_thread::sleep_for(std::chrono::seconds(5));
-            while(true)
-            {
+    {
+        std::this_thread::sleep_for(std::chrono::seconds(5));
+        while(true)
+        {
             std::ifstream fin("result.txt");
-            Eigen::Isometry3d tf=Eigen::Isometry3d::Identity();
-            //tf.rotate(Eigen::AngleAxisd(-M_PI/2, Eigen::Vector3d::UnitX())*Eigen::AngleAxisd(-M_PI, Eigen::Vector3d::UnitY()));
-            tf.rotate(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitY())*Eigen::AngleAxisd(-M_PI/2, Eigen::Vector3d::UnitX()));
+            
+           
             while(!fin.eof())
             {
-            double x,y,z;
-            fin >> x >> y >> z;
-            tf.translation() = Eigen::Vector3d(x,y,z);
-            window.setViewTrack(Eigen::Vector3d(x,y,z));
-            moveSkeleton(ball1, tf);
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));			
+
+                double x,y,z;
+                fin >> x >> y >> z;
+                oldx = x - oldx;
+                oldy = y - oldy;
+                angleRot = -atan2(oldx, oldy);
+                std::cout << angleRot <<std::endl; 
+                Eigen::Isometry3d tf=Eigen::Isometry3d::Identity();
+                tf.rotate(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitY())*Eigen::AngleAxisd(-M_PI/2, Eigen::Vector3d::UnitX()));
+                tf.rotate(Eigen::AngleAxisd(angleRot, Eigen::Vector3d::UnitY())); 
+                tf.translation() = Eigen::Vector3d(x,y,z);
+                moveSkeleton(ball1, tf);
+                window.setViewTrack(Eigen::Vector3d(x,y,z));
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));			
+                oldx = x; oldy = y; oldz = z; 
             }
-            }
-            });
+        }
+    });
 
 
     glutInit(&argc, argv);
