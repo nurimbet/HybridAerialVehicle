@@ -1,5 +1,5 @@
 #include <dart/dart.h>
-#include <ompl/base/spaces/RealVectorStateSpace.h>
+#include <ompl/base/spaces/RealVectorStateSpace.h> 
 #include <ompl/geometric/SimpleSetup.h>
 #include <ompl/geometric/planners/prm/PRM.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
@@ -101,9 +101,7 @@ class Simple3DEnvironment {
             //
         }
 
-        void setWorld(const ds::WorldPtr &world) { world_ = world; }
-
-    private:
+        void setWorld(const ds::WorldPtr &world) { world_ = world; } private:
         bool isStateValid(const ob::State *state) const {
 
             double x = state->as<ompl::base::RealVectorStateSpace::StateType>()->values[0]; 
@@ -168,19 +166,20 @@ int main(int argc, char *argv[]) {
     //std::cout << "collision detected " << world->checkCollision() << std::endl;
     world->addSkeleton(chicago);
     world->addSkeleton(ball1);
-
+    
+    Eigen::Vector3d start(0.0,0.0,15.0);
+    Eigen::Vector3d finish(2000,3000,70);
+/*
     Simple3DEnvironment env;
     env.setWorld(world);
 
-    Eigen::Vector3d start(0.0,0.0,15.0);
-    Eigen::Vector3d finish(2000,3000,70);
 
     if(env.plan(start,finish))
     {
         env.recordSolution();
     }
 
-
+*/
     tf=Eigen::Isometry3d::Identity();
     // tf.rotate(Eigen::AngleAxisd(-M_PI/2, Eigen::Vector3d::UnitX())*Eigen::AngleAxisd(-M_PI, Eigen::Vector3d::UnitY()));
     tf.rotate(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitY())*Eigen::AngleAxisd(-M_PI/2, Eigen::Vector3d::UnitX()));
@@ -192,7 +191,7 @@ int main(int argc, char *argv[]) {
     double oldx, oldy, oldz,angleRot,angleRotOld = 0.0;
     std::thread t([&]()
     {
-        std::this_thread::sleep_for(std::chrono::seconds(2));
+        std::this_thread::sleep_for(std::chrono::seconds(10));
         while(true)
         {
             std::ifstream fin("result.txt");
@@ -211,7 +210,7 @@ int main(int argc, char *argv[]) {
                 Eigen::Isometry3d tf=Eigen::Isometry3d::Identity();
                 tf.rotate(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitY())*Eigen::AngleAxisd(-M_PI/2, Eigen::Vector3d::UnitX()));
                 
-                if (abs(angleRot - angleRotOld) < M_PI/9) {
+                if (abs(angleRot - angleRotOld) < M_PI/18) {
                     angleRot = angleRotOld;
                 }
                 tf.rotate(Eigen::AngleAxisd(angleRot, Eigen::Vector3d::UnitY())); 
@@ -220,7 +219,7 @@ int main(int argc, char *argv[]) {
                 moveSkeleton(ball1, tf);
                     
                 window.setViewTrack(Eigen::Vector3d(x,y,z), Eigen::AngleAxisd(-angleRot, Eigen::Vector3d::UnitZ()));
-                std::this_thread::sleep_for(std::chrono::milliseconds(10));			
+                std::this_thread::sleep_for(std::chrono::milliseconds(3));			
                 
                 oldx = x; oldy = y; oldz = z; 
                 angleRotOld = angleRot;
@@ -231,7 +230,7 @@ int main(int argc, char *argv[]) {
 
     glutInit(&argc, argv);
     window.initWindow(640*2, 480*2, "SDF");
-    window.refreshTimer(5);
+    //window.refreshTimer(5);
     glutMainLoop();
 
     t.join();

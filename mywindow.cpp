@@ -12,7 +12,7 @@ void MyWindow::drawSkels() {
     // Make sure lighting is turned on and that polygons get filled in
     glEnable(GL_LIGHTING);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
+    //glFrustum(-10, 10, -10, 10, 15, 200);
     //Eigen::Matrix3d rot;
     //rot = Eigen::AngleAxisd(-M_PI/4.0, Eigen::Vector3d::UnitX())*Eigen::AngleAxisd(M_PI/2.0, Eigen::Vector3d::UnitZ());//*Eigen::AngleAxisd(-M_PI/4.0, Eigen::Vector3d::UnitX());
     //Eigen::Quaterniond quat(rot);    
