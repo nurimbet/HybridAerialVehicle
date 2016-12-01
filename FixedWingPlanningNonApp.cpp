@@ -179,9 +179,12 @@ class FixedWingEnvironment{
             //
         }
 
-        void setWorld(const ds::WorldPtr &world) { world_ = world; } private:
-            bool isStateValid(const ob::State *state) const {
-                const ob::CompoundStateSpace::StateType& s = state->as<ob::CompoundStateSpace::StateType>();
+        void setWorld(const ds::WorldPtr &world) { world_ = world; } 
+    private:
+        bool isStateValid(const ob::State *state) const {
+                const auto& s = state->as<ob::SE3StateSpace::StateType>(0)
+            
+                double x = s->getX();
                 /*
                 std::cout <<  x << " "<< y << " "<<z<<std::endl;
 
