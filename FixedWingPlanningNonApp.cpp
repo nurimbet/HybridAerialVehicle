@@ -24,7 +24,6 @@ namespace ds = dart::simulation;
 namespace dd = dart::dynamics;
 namespace dc = dart::collision;
 namespace du = dart::utils;
-ob::StateSpacePtr FWspace;
 constexpr double kMaxWidth = 3000;
 constexpr double kMaxLength = 4000;
 constexpr double kMaxHeight = 400;
@@ -44,9 +43,17 @@ class FixedWingEnvironment{
     public:
         FixedWingEnvironment() {
 
-            FWspace =constructFWStateSpace();
+
+            FWspace = ob::StateSpacePtr(new ob::CompoundStateSpace());
+
+            FWspace->as<ob::CompoundStateSpace>()->addSubspace(ob::StateSpacePtr(new ob::SE3StateSpace()), 1.);
+            FWspace->as<ob::CompoundStateSpace>()->addSubspace(ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), .3);
+            FWspace->as<ob::CompoundStateSpace>()->addSubspace(ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), .3);
+            //stateSpace->as<ob::CompoundStateSpace>()->addSubspace(ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), .3);
+            FWspace->as<ob::CompoundStateSpace>()->lock();
 
             oc::ControlSpacePtr cspace(new FWControlSpace(FWspace));
+            
 
             ob::RealVectorBounds velbounds(1), omegabounds(1),anglebounds(1), controlbounds(3);
 
@@ -57,8 +64,8 @@ class FixedWingEnvironment{
             //omegabounds.setHigh(.2);
             //space->as<ob::CompoundStateSpace>()->as<ob::RealVectorStateSpace>(3)->setBounds(omegabounds);
 
-            anglebounds.setLow(-1000);
-            anglebounds.setHigh(1000);
+            anglebounds.setLow(-4000);
+            anglebounds.setHigh(4000);
             FWspace->as<ob::CompoundStateSpace>()->as<ob::RealVectorStateSpace>(2)->setBounds(anglebounds);
             controlbounds.setLow(-0.3); // V dot
             controlbounds.setHigh(0.3);
@@ -75,7 +82,7 @@ class FixedWingEnvironment{
 
             oc::ODESolverPtr odeSolver(new oc::ODEBasicSolver<> (ss_->getSpaceInformation(),std::bind( &FixedWingEnvironment::FixedWingODE, this,std::placeholders::_1, std::placeholders::_2,std::placeholders::_3)));
             ss_->setStatePropagator(oc::ODESolver::getStatePropagator(odeSolver, std::bind(&FixedWingEnvironment::FixedWingPostIntegration, this, std::placeholders::_1, std::placeholders::_2,std::placeholders::_3, std::placeholders::_4)));
-            ss_->getSpaceInformation()->setPropagationStepSize(1);
+            ss_->getSpaceInformation()->setPropagationStepSize(0.1);
 
             ob::RealVectorBounds bounds(3);
             bounds.setLow(0);
@@ -83,13 +90,12 @@ class FixedWingEnvironment{
             bounds.setLow(1,0);
             bounds.setHigh(1,4000);
             bounds.setLow(2,15);
-            bounds.setHigh(400);
+            bounds.setHigh(2,400);
 
 
 
             ss_->getStateSpace()->as<ob::CompoundStateSpace>()->as<ob::SE3StateSpace>(0)->setBounds(bounds);
-            ss_->setStateValidityChecker(std::bind(&FixedWingEnvironment::isStateValid,
-            this, std::placeholders::_1));
+
             FWspace->setup();
 
             /*
@@ -111,7 +117,9 @@ class FixedWingEnvironment{
             1e-4);
 
              */
-            ss_->setPlanner(ob::PlannerPtr(new oc::SST(ss_->getSpaceInformation())));
+            ss_->setPlanner(ob::PlannerPtr(new oc::RRT(ss_->getSpaceInformation())));
+            ss_->setStateValidityChecker(std::bind(&FixedWingEnvironment::isStateValid,
+                        this, std::placeholders::_1));
 
         }
 
@@ -134,10 +142,11 @@ class FixedWingEnvironment{
             goal->as<ob::SE3StateSpace::StateType>(0)->setZ(final[2]);
             goal->as<ob::RealVectorStateSpace::StateType>(1)->values[0] = final[3];
 
-            ss_->setStartAndGoalStates(start, goal);
+            ss_->setStartAndGoalStates(start, goal,5);
+            //ss_->setup();
 
             // this will run the algorithm for one second
-            ss_->solve(60);
+            ss_->solve(600);
 
             // ss_->solve(1000); // it will run for 1000 seconds
 
@@ -181,31 +190,37 @@ class FixedWingEnvironment{
 
         void setWorld(const ds::WorldPtr &world) { world_ = world; } 
     private:
-        bool isStateValid(const ob::State *state) const {
-                ob::SE3StateSpace::StateType* s = state->as<ob::CompoundStateSpace>(0)->as<ob::SE3StateSpace::StateType>();
-            
-                double x = s->getX();
-                /*
-                std::cout <<  x << " "<< y << " "<<z<<std::endl;
+        bool isStateValid(const ob::State *state) {
 
-                Eigen::Isometry3d tf;
-                tf = Eigen::Isometry3d::Identity();
-                tf.translation() = Eigen::Vector3d(x,y,z);
+            //const ob::ScopedState<ob::CompoundStateSpace> st(ss_->getStateSpace(), state);
+            //const ob::SE3StateSpace::StateType* s = st->as<ompl::base::SE3StateSpace::StateType>(0);
+            //double x = s->as<ob::RealVectorStateSpace::StateType>(0)->values[0];
+            const ob::SE3StateSpace::StateType* s = state->as<ob::CompoundStateSpace::StateType>()
+                    ->components[0]->as<ob::SE3StateSpace::StateType>();
+            //const ob::RealVectorStateSpace::StateType *pos = pose->as<ob::RealVectorStateSpace::StateType>(0);
+            double x = s->getX();
+            double y = s->getY();
+            double z = s->getZ();
 
-                dd::SkeletonPtr uavball = world_->getSkeleton("ball1");
-                //uavball->getJoint()->setTransformFromParentBodyNode(tf);
-                moveSkeleton(uavball, tf);
+               //std::cout <<  x << " "<< y << " "<<z<<std::endl;
 
-                //
-                // ADD CODE HERE
-                //
-                //
+               Eigen::Isometry3d tf;
+               tf = Eigen::Isometry3d::Identity();
+               tf.translation() = Eigen::Vector3d(x,y,z);
 
-                //return true;  // stub
-                return !world_->checkCollision();
-                */
-                return true;
-            }
+               dd::SkeletonPtr uavball = world_->getSkeleton("ball1");
+            //uavball->getJoint()->setTransformFromParentBodyNode(tf);
+            moveSkeleton(uavball, tf);
+
+            //
+            // ADD CODE HERE
+            //
+            //
+
+            //return true;  // stub
+            return !world_->checkCollision() && ss_->getSpaceInformation()->satisfiesBounds(state);
+            //return true;
+        }
         void FixedWingODE (const oc::ODESolver::StateType& q, const oc::Control* control, oc::ODESolver::StateType& qdot)
         {
             const double *u = control->as<oc::RealVectorControlSpace::ControlType>()->values;
@@ -224,7 +239,7 @@ class FixedWingEnvironment{
 
         }
 
-        ob::StateSpacePtr constructFWStateSpace(void)
+        ob::StateSpacePtr constructFWStateSpace()
         {
             ob::StateSpacePtr stateSpace = ob::StateSpacePtr(new ob::CompoundStateSpace());
 
@@ -258,6 +273,7 @@ class FixedWingEnvironment{
 
         oc::SimpleSetupPtr ss_;
         ds::WorldPtr world_;
+        ob::StateSpacePtr FWspace;
 };
 
 
@@ -299,13 +315,15 @@ int main(int argc, char *argv[])
     world->addSkeleton(chicago);
     world->addSkeleton(ball1);
 
-    Eigen::Vector3d start(0.0,0.0,50.0);
-    Eigen::Vector3d finish(2000.0, 3000.0, 100.0);
-    Eigen::Vector4d start1(0.0,0.0,50.0, 12);
-    Eigen::Vector4d finish1(2000.0, 3000.0, 100.0, 10);
+    Eigen::Vector3d start(1.0,1.0,50.0);
+    Eigen::Vector3d finish(2000.0, 3000.0, 200.0);
+    Eigen::Vector4d start1(1.0,1.0,50.0, 12);
+    Eigen::Vector4d finish1(2000.0, 3000.0, 200.0, 10);
+    /*
     FixedWingEnvironment env;
-        env.setWorld(world);
-          env.plan(start1, finish1);
+    env.setWorld(world);
+    env.plan(start1, finish1);
+    */
     /*
        if(env.plan(start,finish))
        {
@@ -331,8 +349,9 @@ int main(int argc, char *argv[])
             while(!fin.eof())
             {
 
-            double x,y,z;
-            fin >> x >> y >> z;
+            double x,y,z, ign;
+            fin >> x >> y >> z >> ign>>ign>>ign>>ign>>ign>>ign>>ign>>ign>>ign>>ign;
+            //std::getline(fin);
 
             oldx = x - oldx;
             oldy = y - oldy;
@@ -350,7 +369,7 @@ int main(int argc, char *argv[])
             moveSkeleton(ball1, tf);
 
             window.setViewTrack(Eigen::Vector3d(x,y,z), Eigen::AngleAxisd(-angleRot, Eigen::Vector3d::UnitZ()));
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));			
+            std::this_thread::sleep_for(std::chrono::milliseconds(3));			
 
             oldx = x; oldy = y; oldz = z; 
             angleRotOld = angleRot;
