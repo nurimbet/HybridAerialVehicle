@@ -1,3 +1,4 @@
+//Default Projection est, pdst, KPIECE
 #include <ompl/control/SpaceInformation.h>
 #include <ompl/base/spaces/SE3StateSpace.h>
 #include <ompl/control/ODESolver.h>
@@ -5,6 +6,7 @@
 #include <ompl/control/SimpleSetup.h>
 #include <ompl/config.h>
 #include <ompl/control/planners/rrt/RRT.h>
+#include <ompl/control/planners/kpiece/KPIECE1.h>
 #include <ompl/control/planners/sst/SST.h>
 #include <iostream>
 #include <valarray>
@@ -69,10 +71,10 @@ class FixedWingEnvironment{
             FWspace->as<ob::CompoundStateSpace>()->as<ob::RealVectorStateSpace>(2)->setBounds(anglebounds);
             controlbounds.setLow(-0.3); // V dot
             controlbounds.setHigh(0.3);
-            controlbounds.setLow(1,-0.1); // Z Dot
-            controlbounds.setHigh(1,0.1);
-            controlbounds.setLow(2,-.2); // PhiDot
-            controlbounds.setHigh(2,.2);
+            controlbounds.setLow(1,-0.06); // Z Dot
+            controlbounds.setHigh(1,0.06);
+            controlbounds.setLow(2,-.06); // PhiDot
+            controlbounds.setHigh(2,.06);
             cspace->as<FWControlSpace>()->setBounds(controlbounds);
 
 
@@ -86,11 +88,11 @@ class FixedWingEnvironment{
 
             ob::RealVectorBounds bounds(3);
             bounds.setLow(0);
-            bounds.setHigh(3000);
+            bounds.setHigh(kMaxWidth);
             bounds.setLow(1,0);
-            bounds.setHigh(1,4000);
+            bounds.setHigh(1,kMaxLength);
             bounds.setLow(2,15);
-            bounds.setHigh(2,400);
+            bounds.setHigh(2,kMaxHeight);
 
 
 
@@ -143,10 +145,10 @@ class FixedWingEnvironment{
             goal->as<ob::RealVectorStateSpace::StateType>(1)->values[0] = final[3];
 
             ss_->setStartAndGoalStates(start, goal,5);
-            //ss_->setup();
+            ss_->setup();
 
             // this will run the algorithm for one second
-            ss_->solve(600);
+            ss_->solve(60*5);
 
             // ss_->solve(1000); // it will run for 1000 seconds
 
@@ -208,7 +210,7 @@ class FixedWingEnvironment{
                tf = Eigen::Isometry3d::Identity();
                tf.translation() = Eigen::Vector3d(x,y,z);
 
-               dd::SkeletonPtr uavball = world_->getSkeleton("ball1");
+               dd::SkeletonPtr uavball = world_->getSkeleton("huav");
             //uavball->getJoint()->setTransformFromParentBodyNode(tf);
             moveSkeleton(uavball, tf);
 
@@ -286,26 +288,27 @@ int main(int argc, char *argv[])
 
     //dd::SkeletonPtr chicago =du::SdfParser::readSkeleton(("/home/arms/Downloads/HybridAerialVehicle/Chicago.sdf"));
     dd::SkeletonPtr chicago =du::SdfParser::readSkeleton(("/home/nurimbet/Research/HybridAerialVehicle/Chicago.sdf"));
-    dd::SkeletonPtr ball1 = dd::Skeleton::create("ball1");
-    //dd::SkeletonPtr ball1 =du::SdfParser::readSkeleton(("/home/arms/Downloads/HybridAerialVehicle/uav.sdf"));
+    setAllColors(chicago, Eigen::Vector3d(0.57,0.6,0.67));
+    dd::SkeletonPtr huav = dd::Skeleton::create("huav");
+    //dd::SkeletonPtr huav =du::SdfParser::readSkeleton(("/home/arms/Downloads/HybridAerialVehicle/uav.sdf"));
 
     //du::SdfParser::readSkeleton(("/home/nurimbet/Research/HybridAerialVehicle/uav.sdf"));
 
-    //dd::SkeletonPtr ball1 = dd::Skeleton::create("ball1");
+    //dd::SkeletonPtr huav = dd::Skeleton::create("huav");
 
     Eigen::Isometry3d tf(Eigen::Isometry3d::Identity());
 
     tf.translation() = Eigen::Vector3d(0, 0, 0);
-    createBall(ball1, Eigen::Vector3d(6, 6, 6), tf) ;
-    world->addSkeleton(ball1);
-    ball1 = du::SdfParser::readSkeleton(("/home/nurimbet/Research/HybridAerialVehicle/uav.sdf"));
+    createBall(huav, Eigen::Vector3d(6, 6, 6), tf) ;
+    world->addSkeleton(huav);
+    huav = du::SdfParser::readSkeleton(("/home/nurimbet/Research/HybridAerialVehicle/uav.sdf"));
 
-    //    ball1->getJoint(0)->setTransformFromParentBodyNode(tf);
-    //moveSkeleton(ball1, tf);
+    //    huav->getJoint(0)->setTransformFromParentBodyNode(tf);
+    //moveSkeleton(huav, tf);
 
-    //createBox(ball1, size,tf) ; 
+    //createBox(huav, size,tf) ; 
 
-    setAllColors(ball1, Eigen::Vector3d(1,0.2,0.2));
+    setAllColors(huav, Eigen::Vector3d(1,1,0));
     //
     // ADD CODE HERE
     // or use OOP if you want
@@ -313,77 +316,74 @@ int main(int argc, char *argv[])
 
     //std::cout << "collision detected " << world->checkCollision() << std::endl;
     world->addSkeleton(chicago);
-    world->addSkeleton(ball1);
+    world->addSkeleton(huav);
 
-    Eigen::Vector3d start(1.0,1.0,50.0);
-    Eigen::Vector3d finish(2000.0, 3000.0, 200.0);
-    Eigen::Vector4d start1(1.0,1.0,50.0, 12);
-    Eigen::Vector4d finish1(2000.0, 3000.0, 200.0, 10);
-    /*
+    Eigen::Vector3d start(1.0,1.0,30.0);
+    Eigen::Vector3d finish(2000.0, 3000.0, 100.0);
+    Eigen::Vector4d start1(1.0,1.0,30.0, 12);
+    Eigen::Vector4d finish1(2000.0, 3000.0, 100.0, 10);
+/*    
     FixedWingEnvironment env;
     env.setWorld(world);
     env.plan(start1, finish1);
-    */
-    /*
-       if(env.plan(start,finish))
-       {
-       env.recordSolution();
-       }
-     */
+ */   
+    dd::SkeletonPtr uavball = world->getSkeleton("huav");
+    world->removeSkeleton(uavball);
+  
     tf=Eigen::Isometry3d::Identity();
     // tf.rotate(Eigen::AngleAxisd(-M_PI/2, Eigen::Vector3d::UnitX())*Eigen::AngleAxisd(-M_PI, Eigen::Vector3d::UnitY()));
     tf.rotate(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitY())*Eigen::AngleAxisd(-M_PI/2, Eigen::Vector3d::UnitX()));
     tf.translation() = start;
-    moveSkeleton(ball1, tf);
 
     MyWindow window(world);
+    moveSkeleton(huav, tf);
     double oldx, oldy, oldz,angleRot,angleRotOld = 0.0;
     std::thread t([&]()
-            {
-            std::this_thread::sleep_for(std::chrono::seconds(3));
-            while(true)
-            {
+    {
+        //std::this_thread::sleep_for(std::chrono::seconds(1));
+        while(true)
+        {
             std::ifstream fin("result.txt");
-
-
+            
+           
             while(!fin.eof())
             {
 
-            double x,y,z, ign;
-            fin >> x >> y >> z >> ign>>ign>>ign>>ign>>ign>>ign>>ign>>ign>>ign>>ign;
-            //std::getline(fin);
-
-            oldx = x - oldx;
-            oldy = y - oldy;
-            angleRot = -atan2(oldx, oldy);
-            //std::cout << angleRot <<std::endl; 
-            Eigen::Isometry3d tf=Eigen::Isometry3d::Identity();
-            tf.rotate(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitY())*Eigen::AngleAxisd(-M_PI/2, Eigen::Vector3d::UnitX()));
-
-            if (abs(angleRot - angleRotOld) < M_PI/18) {
-                angleRot = angleRotOld;
+                double x,y,z,ign;
+                fin >> x >> y >> z >> ign>>ign>>ign>>ign>>ign>>ign>>ign>>ign>>ign>>ign;
+                
+                oldx = x - oldx;
+                oldy = y - oldy;
+                angleRot = -atan2(oldx, oldy);
+                //std::cout << angleRot <<std::endl; 
+                Eigen::Isometry3d tf=Eigen::Isometry3d::Identity();
+                tf.rotate(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitY())*Eigen::AngleAxisd(-M_PI/2, Eigen::Vector3d::UnitX()));
+                
+                if (angleRot == -0) {
+                    angleRot = angleRotOld;
+                }
+                tf.rotate(Eigen::AngleAxisd(angleRot, Eigen::Vector3d::UnitY())); 
+                tf.translation() = Eigen::Vector3d(x,y,z);
+               
+                moveSkeleton(huav, tf);
+                    
+                window.setViewTrack(Eigen::Vector3d(x,y,z), Eigen::AngleAxisd(-angleRot, Eigen::Vector3d::UnitZ()));
+                std::this_thread::sleep_for(std::chrono::milliseconds(5));			
+                
+                oldx = x; oldy = y; oldz = z; 
+                angleRotOld = angleRot;
             }
-            tf.rotate(Eigen::AngleAxisd(angleRot, Eigen::Vector3d::UnitY())); 
-            tf.translation() = Eigen::Vector3d(x,y,z);
-
-            moveSkeleton(ball1, tf);
-
-            window.setViewTrack(Eigen::Vector3d(x,y,z), Eigen::AngleAxisd(-angleRot, Eigen::Vector3d::UnitZ()));
-            std::this_thread::sleep_for(std::chrono::milliseconds(3));			
-
-            oldx = x; oldy = y; oldz = z; 
-            angleRotOld = angleRot;
-            }
-            }
-            });
-
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+        }
+    });
+    
     glutInit(&argc, argv);
     window.initWindow(640*2, 480*2, "SDF");
     //planWithSimpleSetup();
     //window.refreshTimer(5);
     glutMainLoop();
 
-    //    t.join();
+    t.join();
 
     //std::cout << "OMPL version: " << OMPL_VERSION << std::endl;
 
