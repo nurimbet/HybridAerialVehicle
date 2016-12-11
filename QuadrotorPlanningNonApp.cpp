@@ -85,6 +85,7 @@ class QuadrotorEnvironment{
             oc::ODESolverPtr odeSolver(new oc::ODEBasicSolver<> (ss_->getSpaceInformation(),std::bind( &QuadrotorEnvironment::QuadrotorODE, this,std::placeholders::_1, std::placeholders::_2,std::placeholders::_3)));
             ss_->setStatePropagator(oc::ODESolver::getStatePropagator(odeSolver, std::bind(&QuadrotorEnvironment::QuadrotorPostIntegration, this, std::placeholders::_1, std::placeholders::_2,std::placeholders::_3, std::placeholders::_4)));
             ss_->getSpaceInformation()->setPropagationStepSize(0.1);
+            ss_->getSpaceInformation()->setMinMaxControlDuration(100,100);
 
             ob::RealVectorBounds bounds(3);
             bounds.setLow(0);
@@ -148,7 +149,7 @@ class QuadrotorEnvironment{
             ss_->setup();
 
             // this will run the algorithm for one second
-            ss_->solve(60*5);
+            ss_->solve(60);
 
             // ss_->solve(1000); // it will run for 1000 seconds
 
@@ -258,6 +259,8 @@ class QuadrotorEnvironment{
             // Normalize orientation between 0 and 2*pi
             ob::CompoundStateSpace::StateType& s = *result->as<ob::CompoundStateSpace::StateType>();
             ob::SE3StateSpace::StateType& pose = *s.as<ob::SE3StateSpace::StateType>(0);
+            ob::RealVectorStateSpace::StateType& angleRVSP = *s.as<ob::RealVectorStateSpace::StateType>(2);
+            double angle = angleRVSP.values[0];
 
 
             Qspace->as<ob::CompoundStateSpace>()->getSubspace(1)->enforceBounds(s[1]);
@@ -265,9 +268,9 @@ class QuadrotorEnvironment{
             // Enforce steering bounds
             Qspace->as<ob::CompoundStateSpace>()->getSubspace(2)->enforceBounds(s[2]);
             //space->as<ob::CompoundStateSpace>()->getSubspace(3)->enforceBounds(s[3]);
-            ob::ScopedState<ob::CompoundStateSpace> start(Qspace);
+            //ob::ScopedState<ob::CompoundStateSpace> start(Qspace);
 
-            double angle = start->as<ob::RealVectorStateSpace::StateType>(1)->values[0] ;
+            //double angle = start->as<ob::RealVectorStateSpace::StateType>(1)->values[0] ;
             pose.rotation().setIdentity();
             pose.rotation().setAxisAngle(0,0,1, angle);
 
@@ -332,7 +335,7 @@ int main(int argc, char *argv[])
   
     tf=Eigen::Isometry3d::Identity();
     // tf.rotate(Eigen::AngleAxisd(-M_PI/2, Eigen::Vector3d::UnitX())*Eigen::AngleAxisd(-M_PI, Eigen::Vector3d::UnitY()));
-    tf.rotate(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitY())*Eigen::AngleAxisd(-M_PI/2, Eigen::Vector3d::UnitX()));
+    //tf.rotate(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitY())*Eigen::AngleAxisd(-M_PI/2, Eigen::Vector3d::UnitX()));
     tf.translation() = start;
 
     MyWindow window(world);
@@ -350,19 +353,24 @@ int main(int argc, char *argv[])
             {
 
                 double x,y,z,ign;
-                fin >> x >> y >> z >> ign>>ign>>ign>>ign>>ign>>ign>>ign>>ign>>ign>>ign;
+                double rx,ry,rz,rw;
+                //fin >> x >> y >> z >> ign>>ign>>ign>>ign>>ign>>ign>>ign>>ign>>ign>>ign;
+                fin >> x >> y >> z >> rx>>ry>>rz>>rw>>ign>>ign>>ign>>ign>>ign>>ign;
                 
                 oldx = x - oldx;
                 oldy = y - oldy;
                 angleRot = -atan2(oldx, oldy);
                 //std::cout << angleRot <<std::endl; 
+                //std::cout << rx << " " <<ry<< " "<<rz << " "<<rw<<std::endl;
                 Eigen::Isometry3d tf=Eigen::Isometry3d::Identity();
-                tf.rotate(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitY())*Eigen::AngleAxisd(-M_PI/2, Eigen::Vector3d::UnitX()));
+                //tf.rotate(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitY())*Eigen::AngleAxisd(-M_PI/2, Eigen::Vector3d::UnitX()));
                 
                 if (angleRot == -0) {
                     angleRot = angleRotOld;
                 }
-                tf.rotate(Eigen::AngleAxisd(angleRot, Eigen::Vector3d::UnitY())); 
+                Eigen::Quaterniond quat(rw, rx,ry,rz);
+                //tf.rotate(Eigen::AngleAxisd(angleRot, Eigen::Vector3d::UnitY()));
+                tf.rotate(quat);
                 tf.translation() = Eigen::Vector3d(x,y,z);
                
                 moveSkeleton(huav, tf);
