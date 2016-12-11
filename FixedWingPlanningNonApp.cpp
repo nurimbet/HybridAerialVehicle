@@ -377,8 +377,8 @@ int main(int argc, char *argv[])
                 tf.rotate(quat);
                 tf.translation() = Eigen::Vector3d(x,y,z);
                
-                moveSkeleton(huav, tf);
                 //moveSkeleton(huavball, tf);
+                moveSkeleton(huav, tf);
                     
                 window.setViewTrack(Eigen::Vector3d(x,y,z), Eigen::AngleAxisd(-angleRot, Eigen::Vector3d::UnitZ()));
                 std::this_thread::sleep_for(std::chrono::milliseconds(5));			
