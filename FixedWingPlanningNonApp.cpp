@@ -330,11 +330,11 @@ int main(int argc, char *argv[])
     Eigen::Vector3d finish(2000.0, 3000.0, 100.0);
     Eigen::Vector4d start1(1.0,1.0,30.0, 12);
     Eigen::Vector4d finish1(2000.0, 3000.0, 100.0, 10);
-    
+   /* 
     FixedWingEnvironment env;
     env.setWorld(world);
     env.plan(start1, finish1);
-    
+   */ 
     dd::SkeletonPtr uavball = world->getSkeleton("huav");
     world->removeSkeleton(uavball);
   
