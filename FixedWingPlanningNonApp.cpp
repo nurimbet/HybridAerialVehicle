@@ -85,6 +85,7 @@ class FixedWingEnvironment{
             oc::ODESolverPtr odeSolver(new oc::ODEBasicSolver<> (ss_->getSpaceInformation(),std::bind( &FixedWingEnvironment::FixedWingODE, this,std::placeholders::_1, std::placeholders::_2,std::placeholders::_3)));
             ss_->setStatePropagator(oc::ODESolver::getStatePropagator(odeSolver, std::bind(&FixedWingEnvironment::FixedWingPostIntegration, this, std::placeholders::_1, std::placeholders::_2,std::placeholders::_3, std::placeholders::_4)));
             ss_->getSpaceInformation()->setPropagationStepSize(0.1);
+            ss_->getSpaceInformation()->setMinMaxControlDuration(100,100);
 
             ob::RealVectorBounds bounds(3);
             bounds.setLow(0);
@@ -329,11 +330,11 @@ int main(int argc, char *argv[])
     Eigen::Vector3d finish(2000.0, 3000.0, 100.0);
     Eigen::Vector4d start1(1.0,1.0,30.0, 12);
     Eigen::Vector4d finish1(2000.0, 3000.0, 100.0, 10);
-   /* 
+    
     FixedWingEnvironment env;
     env.setWorld(world);
     env.plan(start1, finish1);
-   */ 
+    
     dd::SkeletonPtr uavball = world->getSkeleton("huav");
     world->removeSkeleton(uavball);
   
@@ -365,7 +366,7 @@ int main(int argc, char *argv[])
                 oldy = y - oldy;
                 angleRot = -atan2(oldx, oldy);
                 //std::cout << angleRot <<std::endl; 
-                std::cout << rx << " " <<ry<< " "<<rz << " "<<rw<<std::endl;
+                //std::cout << rx << " " <<ry<< " "<<rz << " "<<rw<<std::endl;
                 Eigen::Isometry3d tf=Eigen::Isometry3d::Identity();
  //               tf.rotate(Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitY())*Eigen::AngleAxisd(-M_PI/2, Eigen::Vector3d::UnitX()));
                 
