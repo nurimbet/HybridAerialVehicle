@@ -3,9 +3,9 @@
 #include <ompl/base/spaces/SE3StateSpace.h>
 #include <ompl/control/ODESolver.h>
 #include <ompl/control/spaces/RealVectorControlSpace.h>
-#include <ompl/control/SimpleSetup.h>
-#include <ompl/config.h>
-#include <ompl/control/planners/rrt/RRT.h>
+#include <ompl/control/SimpleSetup.h> 
+#include <ompl/config.h> 
+#include <ompl/control/planners/rrt/RRT.h> 
 #include <ompl/control/planners/kpiece/KPIECE1.h>
 #include <ompl/control/planners/sst/SST.h>
 #include <iostream>
@@ -263,9 +263,9 @@ class QuadrotorEnvironment{
             // This can be easily verified by working out q * (0,0,1).
             double massInv_ = 1.0;
             double beta_ = 0.1;
-            qdot[7] = massInv_ * (2*u[0]*(q[6]*q[4] + q[3]*q[5]) - beta_ * q[7]);
-            qdot[8] = massInv_ * (2*u[0]*(q[4]*q[5] - q[6]*q[3]) - beta_ * q[8]);
-            qdot[9] = massInv_ * (  u[0]*(q[6]*q[6]-q[3]*q[3]-q[4]*q[4]+q[5]*q[5]) - beta_ * q[9]) - 9.81;
+            qdot[7] = massInv_ * (-2*u[0]*(q[6]*q[4] + q[3]*q[5]) - beta_ * q[7]);
+            qdot[8] = massInv_ * (-2*u[0]*(q[4]*q[5] - q[6]*q[3]) - beta_ * q[8]);
+            qdot[9] = massInv_ * (  -u[0]*(q[6]*q[6]-q[3]*q[3]-q[4]*q[4]+q[5]*q[5]) - beta_ * q[9]) - 9.81;
 
             // derivative of rotational velocity
             qdot[10] = u[1];
