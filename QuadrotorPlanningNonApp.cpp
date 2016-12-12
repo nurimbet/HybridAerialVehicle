@@ -116,7 +116,7 @@ class QuadrotorEnvironment{
             1e-4);
 
              */
-            ss_->setPlanner(ob::PlannerPtr(new oc::SST(ss_->getSpaceInformation())));
+            ss_->setPlanner(ob::PlannerPtr(new oc::RRT(ss_->getSpaceInformation())));
             ss_->setStateValidityChecker(std::bind(&QuadrotorEnvironment::isStateValid,
                         this, std::placeholders::_1));
 
@@ -154,7 +154,7 @@ class QuadrotorEnvironment{
             ss_->setup();
 
             // this will run the algorithm for one second
-            ss_->solve(60*10);
+            ss_->solve(60*1);
 
             // ss_->solve(1000); // it will run for 1000 seconds
 
