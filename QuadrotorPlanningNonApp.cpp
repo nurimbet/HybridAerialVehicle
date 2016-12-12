@@ -58,8 +58,8 @@ class QuadrotorEnvironment{
 
             ob::RealVectorBounds velbounds(6), controlbounds(4);
 
-            velbounds.setLow(-10);
-            velbounds.setHigh(10);
+            velbounds.setLow(-100);
+            velbounds.setHigh(100);
             Qspace->as<ob::CompoundStateSpace>()->as<ob::RealVectorStateSpace>(1)->setBounds(velbounds);
             //omegabounds.setLow(-.2);
             //omegabounds.setHigh(.2);
@@ -68,8 +68,8 @@ class QuadrotorEnvironment{
             //Qspace->as<ob::CompoundStateSpace>()->as<ob::RealVectorStateSpace>(2)->setBounds(anglebounds);
             controlbounds.setLow(-1);
             controlbounds.setHigh(1);
-            controlbounds.setLow(0, -5);
-            controlbounds.setHigh(0, 15);
+            controlbounds.setLow(0, -20);
+            controlbounds.setHigh(0, 20);
             cspace->as<QControlSpace>()->setBounds(controlbounds);
 
 
@@ -116,7 +116,7 @@ class QuadrotorEnvironment{
             1e-4);
 
              */
-            ss_->setPlanner(ob::PlannerPtr(new oc::RRT(ss_->getSpaceInformation())));
+            ss_->setPlanner(ob::PlannerPtr(new oc::SST(ss_->getSpaceInformation())));
             ss_->setStateValidityChecker(std::bind(&QuadrotorEnvironment::isStateValid,
                         this, std::placeholders::_1));
 
@@ -211,7 +211,10 @@ class QuadrotorEnvironment{
             double z = s->getZ();
 
             //std::cout <<  x << " "<< y << " "<<z<<std::endl;
-Eigen::Isometry3d tf; tf = Eigen::Isometry3d::Identity(); tf.translation() = Eigen::Vector3d(x,y,z); dd::SkeletonPtr uavball = world_->getSkeleton("huav");
+            Eigen::Isometry3d tf; 
+            tf = Eigen::Isometry3d::Identity(); 
+            tf.translation() = Eigen::Vector3d(x,y,z); 
+            dd::SkeletonPtr uavball = world_->getSkeleton("huav");
             //uavball->getJoint()->setTransformFromParentBodyNode(tf);
             moveSkeleton(uavball, tf);
 
@@ -221,7 +224,7 @@ Eigen::Isometry3d tf; tf = Eigen::Isometry3d::Identity(); tf.translation() = Eig
             //
 
             //return true;  // stub
-            return !world_->checkCollision();// && ss_->getSpaceInformation()->satisfiesBounds(state);
+            return !world_->checkCollision() &&  ss_->getSpaceInformation()->satisfiesBounds(state);
             //return true;
         }
         void QuadrotorODE (const oc::ODESolver::StateType& q, const oc::Control* control, oc::ODESolver::StateType& qdot)
@@ -258,11 +261,11 @@ Eigen::Isometry3d tf; tf = Eigen::Isometry3d::Identity(); tf.translation() = Eig
             // the z-axis of the body frame in world coordinates is equal to
             // (2(wy+xz), 2(yz-wx), w^2-x^2-y^2+z^2).
             // This can be easily verified by working out q * (0,0,1).
-    double massInv_ = 1.0;
-    double beta_ = 1.0;
-            qdot[7] = massInv_ * (-2*u[0]*(q[6]*q[4] + q[3]*q[5]) - beta_ * q[7]);
-            qdot[8] = massInv_ * (-2*u[0]*(q[4]*q[5] - q[6]*q[3]) - beta_ * q[8]);
-            qdot[9] = massInv_ * (  -u[0]*(q[6]*q[6]-q[3]*q[3]-q[4]*q[4]+q[5]*q[5]) - beta_ * q[9]) - 9.81;
+            double massInv_ = 1.0;
+            double beta_ = 0.1;
+            qdot[7] = massInv_ * (2*u[0]*(q[6]*q[4] + q[3]*q[5]) - beta_ * q[7]);
+            qdot[8] = massInv_ * (2*u[0]*(q[4]*q[5] - q[6]*q[3]) - beta_ * q[8]);
+            qdot[9] = massInv_ * (  u[0]*(q[6]*q[6]-q[3]*q[3]-q[4]*q[4]+q[5]*q[5]) - beta_ * q[9]) - 9.81;
 
             // derivative of rotational velocity
             qdot[10] = u[1];
@@ -311,8 +314,8 @@ int main(int argc, char *argv[])
             new dc::BulletCollisionDetector());
     //    world->setGravity(Eigen::Vector3d(0.0, 0.0, -9.8));
 
-    //dd::SkeletonPtr chicago =du::SdfParser::readSkeleton(("/home/arms/Downloads/HybridAerialVehicle/Chicago.sdf"));
-    dd::SkeletonPtr chicago =du::SdfParser::readSkeleton(("/home/nurimbet/Research/HybridAerialVehicle/Chicago.sdf"));
+    dd::SkeletonPtr chicago =du::SdfParser::readSkeleton(("/home/arms/Downloads/HybridAerialVehicle/Chicago.sdf"));
+    //dd::SkeletonPtr chicago =du::SdfParser::readSkeleton(("/home/nurimbet/Research/HybridAerialVehicle/Chicago.sdf"));
     setAllColors(chicago, Eigen::Vector3d(0.57,0.6,0.67));
     dd::SkeletonPtr huav = dd::Skeleton::create("huav");
     //dd::SkeletonPtr huav =du::SdfParser::readSkeleton(("/home/arms/Downloads/HybridAerialVehicle/uav.sdf"));
@@ -326,7 +329,8 @@ int main(int argc, char *argv[])
     tf.translation() = Eigen::Vector3d(0, 0, 0);
     createBall(huav, Eigen::Vector3d(6, 6, 6), tf) ;
     world->addSkeleton(huav);
-    huav = du::SdfParser::readSkeleton(("/home/nurimbet/Research/HybridAerialVehicle/uav.sdf"));
+    huav = du::SdfParser::readSkeleton(("/home/arms/Downloads/HybridAerialVehicle/uav.sdf"));
+    //huav = du::SdfParser::readSkeleton(("/home/nurimbet/Research/HybridAerialVehicle/uav.sdf"));
 
     //    huav->getJoint(0)->setTransformFromParentBodyNode(tf);
     //moveSkeleton(huav, tf);
@@ -346,12 +350,12 @@ int main(int argc, char *argv[])
     Eigen::Vector3d start(10.0,10.0,30.0);
     Eigen::Vector3d finish(20.0, 30.0, 100.0);
     Eigen::Vector3d start1(10.0,10.0,30.0);
-    Eigen::Vector3d finish1(20.0, 20.0, 40.0);
-        
-          QuadrotorEnvironment env;
-          env.setWorld(world);
-          env.plan(start1, finish1);
-       
+    Eigen::Vector3d finish1(40.0, 40.0, 100.0);
+
+    QuadrotorEnvironment env;
+    env.setWorld(world);
+    env.plan(start1, finish1);
+
     dd::SkeletonPtr uavball = world->getSkeleton("huav");
     world->removeSkeleton(uavball);
 
@@ -390,15 +394,15 @@ int main(int argc, char *argv[])
             if (angleRot == -0) {
                 angleRot = angleRotOld;
             }
-            //Eigen::Quaterniond quat(rw, rx,ry,rz);
-            tf.rotate(Eigen::AngleAxisd(angleRot, Eigen::Vector3d::UnitZ()));
-            //tf.rotate(quat);
+            Eigen::Quaterniond quat(rw, rx,ry,rz);
+            //tf.rotate(Eigen::AngleAxisd(angleRot, Eigen::Vector3d::UnitZ()));
+            tf.rotate(quat);
             tf.translation() = Eigen::Vector3d(x,y,z);
 
             moveSkeleton(huav, tf);
 
             window.setViewTrack(Eigen::Vector3d(x,y,z), Eigen::AngleAxisd(-angleRot, Eigen::Vector3d::UnitZ()));
-            std::this_thread::sleep_for(std::chrono::milliseconds(5));			
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));			
 
             oldx = x; oldy = y; oldz = z; 
             angleRotOld = angleRot;

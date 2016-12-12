@@ -37,6 +37,7 @@ void MyWindow::setViewTrack(const Eigen::Vector3d& v, const Eigen::AngleAxisd& r
 {
     std::lock_guard<std::mutex> lock(readMutex);
     mTrans = -v*1000.0;//-Eigen::Vector3d(20,20,20);
+//    mTrans = -Eigen::Vector3d(10,10,150)*1000;
     Eigen::Quaterniond quat(Eigen::AngleAxisd(-3*M_PI/8.0, Eigen::Vector3d::UnitX())*rot);    
 
 //    mTrackBall.setQuaternion(quat);

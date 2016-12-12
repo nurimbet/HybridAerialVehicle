@@ -16,8 +16,8 @@
       <visual name="visual">
         <geometry>
           <mesh>
-            <uri>/home/nurimbet/Research/HybridAerialVehicle/uav_v3_1.stl</uri>
-            <!--<uri>/home/arms/Downloads/HybridAerialVehicle/uav1.stl</uri>-->
+            <!--<uri>/home/nurimbet/Research/HybridAerialVehicle/uav_v3_1.stl</uri>-->
+            <uri>/home/arms/Downloads/HybridAerialVehicle/uav_v3_1.stl</uri>
             <scale> 0.001 0.001 0.001 </scale>
             <pose>0 0 0 0 0 0</pose>
             <!--<scale> 1000 1000 1000 </scale>-->

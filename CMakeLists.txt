@@ -21,7 +21,7 @@ aux_source_directory(. SRC_LIST)
 list(REMOVE_ITEM SRC_LIST "./sdfReader.cpp")
 list(REMOVE_ITEM SRC_LIST "./main.cpp")
 list(REMOVE_ITEM SRC_LIST "./Quadrotor.cpp")
-list(REMOVE_ITEM SRC_LIST "./QuadrotorPlanningNonApp.cpp")
+list(REMOVE_ITEM SRC_LIST "./FixedWingPlanningNonApp.cpp")
 
 add_executable(${PROJECT_NAME} ${SRC_LIST})
 
