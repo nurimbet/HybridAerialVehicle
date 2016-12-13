@@ -1,0 +1,45 @@
+#!/usr/bin/gnuplot
+set term qt 1 size 640*1.5,480*1.5
+
+set multiplot layout 4,3 title "Lot's of stuff"
+set   autoscale                        # scale axes automatically
+unset log                              # remove any log-scaling
+unset label                            # remove any previous labels
+set xtic auto                          # set xtics automatically
+set ytic auto                          # set ytics automatically
+set title "Hybrid UAV Flight"
+set xlabel "x"
+set ylabel "y"
+set zlabel "z"
+set grid
+unset key
+set title "Velocity X"
+plot    "result.txt" using 8 w lines  
+unset key
+set title "Velocity Y"
+plot    "result.txt" using 9 w lines  
+unset key
+set title "Velocity Z"
+plot    "result.txt" using 10 w lines  
+unset key
+set title "Angular Velocity X"
+plot    "result.txt" using 11 w lines  
+unset key
+set title "Angular Velocity Y"
+plot    "result.txt" using 12 w lines  
+unset key
+set title "Angular Velocity Z"
+plot    "result.txt" using 13 w lines  
+unset key
+set title "Acceleration"
+plot    "result.txt" using 14 w lines  
+unset key
+set title "Angular Accelaration X"
+plot    "result.txt" using 15 w lines  
+unset key
+set title "Angular Accelaration Y"
+plot    "result.txt" using 16 w lines  
+unset key
+set title "Angular Accelaration Z"
+plot    "result.txt" using 17 w lines  
+pause -1
