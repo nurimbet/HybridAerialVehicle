@@ -599,15 +599,25 @@ std::string getLastLine(std::ifstream& in) {
   return line;
 }
 
+std::string getWorkingDirectory(){
+    char buff[1024]={0};
+
+    getcwd(buff, 1024);
+
+    return std::string(buff);
+}
+
 int main(int argc, char* argv[]) {
   ds::WorldPtr world = std::make_shared<ds::World>();
   world->getConstraintSolver()->setCollisionDetector(
       new dc::BulletCollisionDetector());
   //    world->setGravity(Eigen::Vector3d(0.0, 0.0, -9.8));
 
+  std::string prefix = getWorkingDirectory();
+
   dd::SkeletonPtr chicago =
-      du::SdfParser::readSkeleton(dart::common::Uri::createFromRelativeUri(
-          std::string("."), std::string("Chicago.sdf")));
+      du::SdfParser::readSkeleton(
+          prefix + std::string("/Chicago.sdf"));
   // dd::SkeletonPtr chicago
   // =du::SdfParser::readSkeleton(("/home/nurimbet/Research/HybridAerialVehicle/Chicago.sdf"));
   setAllColors(chicago, Eigen::Vector3d(0.57, 0.6, 0.67));
@@ -629,8 +639,8 @@ int main(int argc, char* argv[]) {
 
   world->addSkeleton(huav);
   // world->addSkeleton(huavball);
-  huav = du::SdfParser::readSkeleton(dart::common::Uri::createFromRelativeUri(
-      std::string(""), std::string("uav.sdf")));
+  huav = du::SdfParser::readSkeleton(
+      prefix + std::string("/uav.sdf"));
   // huav =
   // du::SdfParser::readSkeleton(("/home/nurimbet/Research/HybridAerialVehicle/uav.sdf"));
 
