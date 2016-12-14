@@ -44,7 +44,7 @@ class QuadrotorEnvironment {
     Qspace->as<ob::CompoundStateSpace>()->addSubspace(
         ob::StateSpacePtr(new ob::SE3StateSpace()), 1.);
     Qspace->as<ob::CompoundStateSpace>()->addSubspace(
-        ob::StateSpacePtr(new ob::RealVectorStateSpace(6)), 1.);
+        ob::StateSpacePtr(new ob::RealVectorStateSpace(6)), 0.3);
     // stateSpace->as<ob::CompoundStateSpace>()->addSubspace(ob::StateSpacePtr(new
     // ob::RealVectorStateSpace(1)), .3);
     Qspace->as<ob::CompoundStateSpace>()->lock();
@@ -156,7 +156,7 @@ class QuadrotorEnvironment {
     ss_->setup();
 
     // this will run the algorithm for one second
-    ss_->solve(60 * 5);
+    ss_->solve(60 * 15);
 
     // ss_->solve(1000); // it will run for 1000 seconds
 
@@ -376,7 +376,7 @@ int main(int argc, char* argv[]) {
   Eigen::Vector3d start1(20.0, 20.0, 20.0);
   Eigen::Vector3d finish1(100.0, 100.0, 100.0);
 
-#define PLAN
+//#define PLAN
 #ifdef PLAN
   QuadrotorEnvironment env;
   env.setWorld(world);
@@ -424,6 +424,7 @@ int main(int argc, char* argv[]) {
           angleRot = angleRotOld;
         }
         Eigen::Quaterniond quat(rw, rx, ry, rz);
+        Eigen::Quaterniond quat1(rw, -rx, -ry, -rz);
         // tf.rotate(Eigen::AngleAxisd(angleRot, Eigen::Vector3d::UnitZ()));
         tf.rotate(quat);
         tf.translation() = Eigen::Vector3d(x, y, z);
@@ -432,7 +433,7 @@ int main(int argc, char* argv[]) {
 
         window.setViewTrack(
             Eigen::Vector3d(x, y, z),
-            Eigen::AngleAxisd(-angleRot, Eigen::Vector3d::UnitZ()));
+            quat1);
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
         oldx = x;
