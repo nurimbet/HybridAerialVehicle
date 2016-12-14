@@ -637,7 +637,9 @@ int main(int argc, char* argv[]) {
     Eigen::Vector3d start(10.0, 10.0, 30.0);
     Eigen::Vector3d finish(20.0, 30.0, 100.0);
     Eigen::Vector3d start1(20.0, 20.0, 20.0);
-    Eigen::Vector3d finish1(100.0, 100.0, 100.0);
+    Eigen::Vector3d finish1(50.0, 50.0, 100.0);
+    Eigen::Vector3d finish2(2000.0, 3000.0, 100.0);
+    Eigen::VectorXf start2(8);
 
 #define PLAN
 #ifdef PLAN
@@ -654,7 +656,7 @@ int main(int argc, char* argv[]) {
     std::string line = getLastLine(file);
     //float x,y,z;
     //file >> x>>y>>z;
-    std::cout << line << '\n';
+//    std::cout << line << '\n';
     std::string delimiter = " ";
 
     size_t pos = 0;
@@ -664,18 +666,20 @@ int main(int argc, char* argv[]) {
     float linear[arsize];
     while ((pos = line.find(delimiter)) != std::string::npos && i < arsize) {
         token = line.substr(0, pos);
-        std::cout << token << std::endl;
+        //std::cout << token << std::endl;
         linear[i] = std::stof(token);
         line.erase(0, pos + delimiter.length());
         i++;
         //std::cout << token << std::endl;
 
     }
-    for (i = 0; i<arsize; i++)
+    for (i = 0; i<8; i++)
     {
-        std::cout << linear[i] << std::endl;
+       // std::cout << linear[i] << std::endl;
+        start2(i) = linear[i];
         
     }
+        std::cout << start2<< std::endl;
  //   std::cout << x << " "<< y << " " << z << std::endl;
 #endif
     dd::SkeletonPtr uavball = world->getSkeleton("huav");
