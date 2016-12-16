@@ -34,7 +34,7 @@ constexpr double kMaxHeight = 400.0;
 class QControlSpace : public oc::RealVectorControlSpace {
     public:
         QControlSpace(const ob::StateSpacePtr& stateSpace)
-            : oc::RealVectorControlSpace(stateSpace, 4) {}
+            : oc::RealVectorControlSpace(stateSpace, 3) {}
 };
 
 class QuadrotorEnvironment {
@@ -45,14 +45,14 @@ class QuadrotorEnvironment {
             Qspace->as<ob::CompoundStateSpace>()->addSubspace(
                     ob::StateSpacePtr(new ob::SE3StateSpace()), 1.);
             Qspace->as<ob::CompoundStateSpace>()->addSubspace(
-                    ob::StateSpacePtr(new ob::RealVectorStateSpace(6)), 0.3);
+                    ob::StateSpacePtr(new ob::RealVectorStateSpace(3)), 0);
             // stateSpace->as<ob::CompoundStateSpace>()->addSubspace(ob::StateSpacePtr(new
             // ob::RealVectorStateSpace(1)), .3);
             Qspace->as<ob::CompoundStateSpace>()->lock();
 
             oc::ControlSpacePtr cspace(new QControlSpace(Qspace));
 
-            ob::RealVectorBounds velbounds(6), controlbounds(4);
+            ob::RealVectorBounds velbounds(3), controlbounds(3);
 
             velbounds.setLow(-10);
             velbounds.setHigh(10);
@@ -66,8 +66,8 @@ class QuadrotorEnvironment {
             // Qspace->as<ob::CompoundStateSpace>()->as<ob::RealVectorStateSpace>(2)->setBounds(anglebounds);
             controlbounds.setLow(-0.1);
             controlbounds.setHigh(0.1);
-            controlbounds.setLow(0, 0);
-            controlbounds.setHigh(0, 20);
+            controlbounds.setLow(0, 5);
+            controlbounds.setHigh(0, 15);
             cspace->as<QControlSpace>()->setBounds(controlbounds);
 
             // oc::SimpleSetup ss(cspace);
@@ -87,7 +87,7 @@ class QuadrotorEnvironment {
 
             ob::RealVectorBounds bounds(3);
             bounds.setLow(0);
-            bounds.setHigh(kMaxWidth/1);
+            bounds.setHigh(kMaxWidth/10);
             bounds.setLow(1, 0);
             bounds.setHigh(1, kMaxLength/10);
             bounds.setLow(2, 0);
@@ -137,9 +137,9 @@ class QuadrotorEnvironment {
             start->as<ob::RealVectorStateSpace::StateType>(1)->values[0] = 0;
             start->as<ob::RealVectorStateSpace::StateType>(1)->values[1] = 0;
             start->as<ob::RealVectorStateSpace::StateType>(1)->values[2] = 0;
-            start->as<ob::RealVectorStateSpace::StateType>(1)->values[3] = 0;
-            start->as<ob::RealVectorStateSpace::StateType>(1)->values[4] = 0;
-            start->as<ob::RealVectorStateSpace::StateType>(1)->values[5] = 0;
+            //start->as<ob::RealVectorStateSpace::StateType>(1)->values[3] = 0;
+            //start->as<ob::RealVectorStateSpace::StateType>(1)->values[4] = 0;
+            //start->as<ob::RealVectorStateSpace::StateType>(1)->values[5] = 0;
 
             ob::ScopedState<ob::CompoundStateSpace> goal(ss_->getStateSpace());
 
@@ -157,7 +157,7 @@ class QuadrotorEnvironment {
             ss_->setup();
 
             // this will run the algorithm for one second
-            ss_->solve(60 * 1);
+            ss_->solve(60 * 10);
 
             // ss_->solve(1000); // it will run for 1000 seconds
 
@@ -242,9 +242,9 @@ class QuadrotorEnvironment {
             // 1. First convert omega to quaternion: qdot = omega * q / 2
             ob::SO3StateSpace::StateType qomega;
             qomega.w = 0;
-            qomega.x = .5 * q[10];
-            qomega.y = .5 * q[11];
-            qomega.z = .5 * q[12];
+            qomega.x = .5 * u[1];
+            qomega.y = .5 * u[2];
+            qomega.z = 0;//.5 * q[12];
 
             // 2. We include a numerical correction so that dot(q,qdot) = 0. This
             // constraint is
@@ -257,6 +257,15 @@ class QuadrotorEnvironment {
             qdot[5] = qomega.z - delta * q[5];
             qdot[6] = qomega.w - delta * q[6];
 
+
+            //            double angle = sqrt(u[1]*u[1]+u[2]*u[2]);  
+            //            qdot[3] = cos(angle/2.0f);
+            //            qdot[4] = u[1]*sin(angle/2.0f)/angle; 
+            //            qdot[5] = u[2]*sin(angle/2.0f)/angle; 
+            //            qdot[5] = 0;
+
+
+
             // derivative of velocity
             // the z-axis of the body frame in world coordinates is equal to
             // (2(wy+xz), 2(yz-wx), w^2-x^2-y^2+z^2).
@@ -264,19 +273,17 @@ class QuadrotorEnvironment {
             double massInv_ = 1.0;
             double beta_ = 0.1;
             qdot[7] =
-                massInv_ * (2 * u[0] * (q[6] * q[4] + q[3] * q[5]) - beta_ * q[7]);
+                massInv_ * (2 * u[0] * (q[6] * q[4] + q[3] * q[5])- beta_ * q[7]);
             qdot[8] =
                 massInv_ * (2 * u[0] * (q[4] * q[5] - q[6] * q[3]) - beta_ * q[8]);
             qdot[9] =
                 massInv_ *
-                (u[0] * (q[6] * q[6] - q[3] * q[3] - q[4] * q[4] + q[5] * q[5]) -
-                 beta_ * q[9]) -
-                9.81;  // - 9.81;
+                (u[0] * (q[6] * q[6] - q[3] * q[3] - q[4] * q[4] + q[5] * q[5]) - 9.8 - beta_ * q[9]);
 
             // derivative of rotational velocity
-            qdot[10] = u[1];
-            qdot[11] = u[2];
-            qdot[12] = u[3];
+            //qdot[10] = u[1];
+            //qdot[11] = u[2];
+            //qdot[12] = u[3];
         }
         /*
            ob::StateSpacePtr constructQStateSpace()
@@ -312,7 +319,7 @@ class QuadrotorEnvironment {
             // Normalize the quaternion representation for the quadrotor
             SO3->enforceBounds(&so3State);
             // Enforce velocity bounds
-            // cs->getSubspace(1)->enforceBounds(csState[1]);
+            cs->getSubspace(1)->enforceBounds(csState[1]);
         }
 
         void printEdge(std::ostream& os, const ob::StateSpacePtr& space,
@@ -662,9 +669,10 @@ int main(int argc, char* argv[]) {
     Eigen::Vector3d start(10.0, 10.0, 30.0);
     Eigen::Vector3d finish(20.0, 30.0, 100.0);
     Eigen::Vector3d start1(20.0, 20.0, 20.0);
-    Eigen::Vector3d finish1(50.0, 20.0, 100.0);
+    Eigen::Vector3d finish1(20.0, 20.0, 100.0);
     Eigen::Vector3d finish2(2000.0, 3000.0, 100.0);
     Eigen::VectorXf start2(8);
+
     if (argc < 2)
     {
 
@@ -681,7 +689,7 @@ int main(int argc, char* argv[]) {
         std::string line = getLastLine(file);
         // float x,y,z;
         // file >> x>>y>>z;
-        //    std::cout << line << '\n';
+        std::cout << line << '\n';
         std::string delimiter = " ";
 
         size_t pos = 0;
@@ -701,21 +709,18 @@ int main(int argc, char* argv[]) {
             // std::cout << linear[i] << std::endl;
             start2(i) = linear[i];
         }
-        std::cout << start2 << std::endl;
+
+        //        std::cout << start2 << std::endl;
+
         Eigen::Matrix3d rot2;
         rot2 = Eigen::Quaterniond(linear[3],linear[4], linear[5], linear[6]);
         Eigen::Vector3d velold(linear[7], linear[8], linear[9]);
-        //Eigen::Vector3d wvelold(linear[10], linear[11], linear[12]);
-        //Eigen::Vector3d P(linear[0] - start1(0), linear[1] - start1(1), linear[2] - start1(2));
+
         Eigen::Vector3d velnew(0,0,0);
-        Eigen::Vector3d velnew1(0,0,0);
-        //Eigen::Matrix3d rot2 = quat2;
         velnew = rot2*(velold);// + wvelold.cross(P));
-        velnew1 = rot2.transpose()*(velold);// + wvelold.cross(P));
         std::cout << velnew << std::endl; 
-        std::cout << velnew1 << std::endl; 
-        //   std::cout << x << " "<< y << " " << z << std::endl;
     }
+
     dd::SkeletonPtr uavball = world->getSkeleton("huav");
     world->removeSkeleton(uavball);
 
@@ -742,7 +747,7 @@ int main(int argc, char* argv[]) {
             double rx, ry, rz, rw;
             // ign>>ign>>ign>>ign>>ign>>ign>>ign>>ign>>ign>>ign;
             fin >> x >> y >> z >> rx >> ry >> rz >> rw >> ign >> ign >> ign >>
-            ign >> ign >> ign >> ign >> ign >> ign >> ign >> ign;
+            ign >> ign >> ign >> ign;// >> ign >> ign >> ign;
 
             oldx = x - oldx;
             oldy = y - oldy;
@@ -757,6 +762,7 @@ int main(int argc, char* argv[]) {
             if (angleRot == -0) {
                 angleRot = angleRotOld;
             }
+
             Eigen::Quaterniond quat(rw, rx, ry, rz);
             Eigen::Quaterniond quat1(rw, -rx, -ry, -rz);
             // tf.rotate(Eigen::AngleAxisd(angleRot, Eigen::Vector3d::UnitZ()));
