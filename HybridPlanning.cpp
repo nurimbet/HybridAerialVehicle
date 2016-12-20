@@ -45,7 +45,7 @@ class QuadrotorEnvironment {
             Qspace->as<ob::CompoundStateSpace>()->addSubspace(
                     ob::StateSpacePtr(new ob::SE3StateSpace()), 1.);
             Qspace->as<ob::CompoundStateSpace>()->addSubspace(
-                    ob::StateSpacePtr(new ob::RealVectorStateSpace(3)), 0);
+                    ob::StateSpacePtr(new ob::RealVectorStateSpace(3)), 0.3);
             // stateSpace->as<ob::CompoundStateSpace>()->addSubspace(ob::StateSpacePtr(new
             // ob::RealVectorStateSpace(1)), .3);
             Qspace->as<ob::CompoundStateSpace>()->lock();
@@ -92,7 +92,7 @@ class QuadrotorEnvironment {
             bounds.setHigh(1, kMaxLength/10);
             bounds.setLow(2, 0);
 
-            bounds.setHigh(2, kMaxHeight/4);
+            bounds.setHigh(2, 3*kMaxHeight/4);
 
             ss_->getStateSpace()
                 ->as<ob::CompoundStateSpace>()
@@ -115,7 +115,7 @@ class QuadrotorEnvironment {
             this, std::placeholders::_1));
             space->setup();
             //ss_->getSpaceInformation()->setStateValidityCheckingResolution(
-            //        1.0 / space->getMaximumExtent());
+
             ss_->getSpaceInformation()->setStateValidityCheckingResolution(
             1e-4);
 
@@ -147,6 +147,9 @@ class QuadrotorEnvironment {
             goal->as<ob::SE3StateSpace::StateType>(0)->setX(final[0]);
             goal->as<ob::SE3StateSpace::StateType>(0)->setY(final[1]);
             goal->as<ob::SE3StateSpace::StateType>(0)->setZ(final[2]);
+            goal->as<ob::RealVectorStateSpace::StateType>(1)->values[0] = 0;
+            goal->as<ob::RealVectorStateSpace::StateType>(1)->values[1] = 0;
+            goal->as<ob::RealVectorStateSpace::StateType>(1)->values[2] = 0;
             // goal->as<ob::RealVectorStateSpace::StateType>(1)->values[0] = 20;
             // goal->as<ob::RealVectorStateSpace::StateType>(1)->values[1] = 0;
             // goal->as<ob::RealVectorStateSpace::StateType>(1)->values[2] = 0;
@@ -157,7 +160,7 @@ class QuadrotorEnvironment {
             ss_->setup();
 
             // this will run the algorithm for one second
-            ss_->solve(60 * 10);
+            ss_->solve(60 * 1);
 
             // ss_->solve(1000); // it will run for 1000 seconds
 
@@ -353,6 +356,9 @@ class FixedWingEnvironment {
                     ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), .3);
             FWspace->as<ob::CompoundStateSpace>()->addSubspace(
                     ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), .3);
+            FWspace->as<ob::CompoundStateSpace>()->addSubspace(
+                    ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), .3);
+            // stateSpace->as<ob::CompoundStateSpace>()->addSubspace(ob::StateSpacePtr(new
             // stateSpace->as<ob::CompoundStateSpace>()->addSubspace(ob::StateSpacePtr(new
             // ob::RealVectorStateSpace(1)), .3);
             FWspace->as<ob::CompoundStateSpace>()->lock();
@@ -376,6 +382,9 @@ class FixedWingEnvironment {
             FWspace->as<ob::CompoundStateSpace>()
                 ->as<ob::RealVectorStateSpace>(2)
                 ->setBounds(anglebounds);
+            FWspace->as<ob::CompoundStateSpace>()
+                ->as<ob::RealVectorStateSpace>(3)
+                ->setBounds(anglebounds);
             controlbounds.setLow(-0.3);  // V dot
             controlbounds.setHigh(0.3);
             controlbounds.setLow(1, -0.06);  // Z Dot
@@ -397,15 +406,15 @@ class FixedWingEnvironment {
                             this, std::placeholders::_1, std::placeholders::_2,
                             std::placeholders::_3, std::placeholders::_4)));
             ss_->getSpaceInformation()->setPropagationStepSize(0.1);
-            ss_->getSpaceInformation()->setMinMaxControlDuration(100, 100);
+            ss_->getSpaceInformation()->setMinMaxControlDuration(10, 10);
 
             ob::RealVectorBounds bounds(3);
             bounds.setLow(0);
-            bounds.setHigh(kMaxWidth/5);
+            bounds.setHigh(kMaxWidth);
             bounds.setLow(1, 0);
-            bounds.setHigh(1, kMaxLength/5);
+            bounds.setHigh(1, kMaxLength);
             bounds.setLow(2, 15);
-            bounds.setHigh(2, kMaxHeight/2);
+            bounds.setHigh(2, kMaxHeight);
 
             ss_->getStateSpace()
                 ->as<ob::CompoundStateSpace>()
@@ -448,6 +457,8 @@ class FixedWingEnvironment {
             start->as<ob::SE3StateSpace::StateType>(0)->setY(init[1]);
             start->as<ob::SE3StateSpace::StateType>(0)->setZ(init[2]);
             start->as<ob::RealVectorStateSpace::StateType>(1)->values[0] = init[3];
+            start->as<ob::RealVectorStateSpace::StateType>(1)->values[1] = 0;
+            start->as<ob::RealVectorStateSpace::StateType>(1)->values[2] = 0;
 
             ob::ScopedState<ob::CompoundStateSpace> goal(ss_->getStateSpace());
 
@@ -461,7 +472,7 @@ class FixedWingEnvironment {
             ss_->setup();
 
             // this will run the algorithm for one second
-            ss_->solve(60);
+            ss_->solve(60 * 1);
 
             // ss_->solve(1000); // it will run for 1000 seconds
 
@@ -668,10 +679,10 @@ int main(int argc, char* argv[]) {
 
     Eigen::Vector3d start(10.0, 10.0, 30.0);
     Eigen::Vector3d finish(20.0, 30.0, 100.0);
-    Eigen::Vector3d start1(20.0, 20.0, 20.0);
-    Eigen::Vector3d finish1(20.0, 20.0, 100.0);
-    Eigen::Vector3d finish2(2000.0, 3000.0, 100.0);
-    Eigen::VectorXf start2(8);
+    Eigen::Vector3d start1(100.0, 100.0, 100.0);
+    Eigen::Vector3d finish1(100.0, 100.0, 200.0);
+    Eigen::Vector4d finish2(2000.0, 3000.0, 200.0, 0);
+    Eigen::Vector4d start2(0,0,0,0);
 
     if (argc < 2)
     {
@@ -705,10 +716,10 @@ int main(int argc, char* argv[]) {
             i++;
             // std::cout << token << std::endl;
         }
-        for (i = 0; i < 8; i++) {
+        /*for (i = 0; i < 8; i++) {
             // std::cout << linear[i] << std::endl;
             start2(i) = linear[i];
-        }
+        }*/
 
         //        std::cout << start2 << std::endl;
 
@@ -719,6 +730,14 @@ int main(int argc, char* argv[]) {
         Eigen::Vector3d velnew(0,0,0);
         velnew = rot2*(velold);// + wvelold.cross(P));
         std::cout << velnew << std::endl; 
+        start2(0) = linear[0];
+        start2(1) = linear[1];
+        start2(2) = linear[2];
+        start2(3) = 10; velnew(0);
+        FixedWingEnvironment env1;
+        env1.setWorld(world);
+        env1.plan(start2, finish2);
+        
     }
 
     dd::SkeletonPtr uavball = world->getSkeleton("huav");
@@ -732,6 +751,9 @@ int main(int argc, char* argv[]) {
     // Eigen::Vector3d::UnitY())*Eigen::AngleAxisd(-M_PI/2,
     // Eigen::Vector3d::UnitX()));
     tf.translation() = start;
+
+
+
 
     MyWindow window(world);
     moveSkeleton(huav, tf);
@@ -773,7 +795,7 @@ int main(int argc, char* argv[]) {
             // moveSkeleton(huavball, tf);
 
             window.setViewTrack(Eigen::Vector3d(x, y, z), quat1);
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
             oldx = x;
             oldy = y;
