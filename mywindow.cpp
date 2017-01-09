@@ -5,6 +5,9 @@ MyWindow::MyWindow(const ds::WorldPtr& world)
     setWorld(world); 
     mZoom = 0.040;
     mTranslate = true;
+// TODO add dart version detection here
+    mZnear = 0.01;
+    mZfar = 1000.0;
 //    mPersp = 45.0;
 }
 
@@ -26,11 +29,6 @@ void MyWindow::drawSkels() {
 //                 static_cast<double>(mWinWidth)/static_cast<double>(mWinHeight),
 //                 0.1, 100.0);
     SimWindow::drawSkels();
-   /* 
-    for (unsigned int i = 0; i < mWorld->getNumSkeletons(); i++) {
-        mWorld->getSkeleton(i)->draw(mRI);
-    }*/
-
 }
 
 void MyWindow::setViewTrack(const Eigen::Vector3d& v, const Eigen::Quaterniond& rot)

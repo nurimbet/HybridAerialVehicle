@@ -664,8 +664,10 @@ int main(int argc, char* argv[]) {
 
   Eigen::Vector3d start(10.0, 10.0, 30.0);
   Eigen::Vector3d finish(20.0, 30.0, 100.0);
+
   Eigen::Vector3d start1(100.0, 100.0, 100.0);
   Eigen::Vector3d finish1(100.0, 100.0, 200.0);
+
   Eigen::Vector4d finish2(2000.0, 3000.0, 200.0, 0);
   Eigen::Vector4d start2(0, 0, 0, 0);
 
