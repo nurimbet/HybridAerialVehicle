@@ -29,12 +29,12 @@ namespace dc = dart::collision;
 namespace du = dart::utils;
 constexpr double kMaxWidth = 3000.0;
 constexpr double kMaxLength = 4000.0;
-constexpr double kMaxHeight = 400.0;
+constexpr double kMaxHeight = 500.0;
 
 class QControlSpace : public oc::RealVectorControlSpace {
  public:
   QControlSpace(const ob::StateSpacePtr& stateSpace)
-      : oc::RealVectorControlSpace(stateSpace, 3) {}
+      : oc::RealVectorControlSpace(stateSpace, 4) {}
 };
 
 class QuadrotorEnvironment {
@@ -45,7 +45,13 @@ class QuadrotorEnvironment {
     Qspace->as<ob::CompoundStateSpace>()->addSubspace(
         ob::StateSpacePtr(new ob::SE3StateSpace()), 1.);
     Qspace->as<ob::CompoundStateSpace>()->addSubspace(
-        ob::StateSpacePtr(new ob::RealVectorStateSpace(3)), 0.3);
+        ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), 0.3);
+    Qspace->as<ob::CompoundStateSpace>()->addSubspace(
+        ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), 0.3);
+    Qspace->as<ob::CompoundStateSpace>()->addSubspace(
+        ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), 0.3);
+    Qspace->as<ob::CompoundStateSpace>()->addSubspace(
+        ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), 0.3);
     // stateSpace->as<ob::CompoundStateSpace>()->addSubspace(ob::StateSpacePtr(new
     // ob::RealVectorStateSpace(1)), .3);
     Qspace->as<ob::CompoundStateSpace>()->lock();
@@ -53,13 +59,26 @@ class QuadrotorEnvironment {
     // control input is made up of the 3 states
     oc::ControlSpacePtr cspace(new QControlSpace(Qspace));
 
-    ob::RealVectorBounds velbounds(3), controlbounds(3);
+    ob::RealVectorBounds velboundx(1),velboundz(1),anglebounds(1), controlbounds(4);
 
-    velbounds.setLow(-10);
-    velbounds.setHigh(10);
+    velboundx.setLow(0);
+    velboundx.setHigh(15);
     Qspace->as<ob::CompoundStateSpace>()
         ->as<ob::RealVectorStateSpace>(1)
-        ->setBounds(velbounds);
+        ->setBounds(velboundx);
+    velboundx.setLow(-10);
+    velboundx.setHigh(10);
+    Qspace->as<ob::CompoundStateSpace>()
+        ->as<ob::RealVectorStateSpace>(2)
+        ->setBounds(velboundx);
+    anglebounds.setLow(-4000);
+    anglebounds.setHigh(4000);
+    Qspace->as<ob::CompoundStateSpace>()
+        ->as<ob::RealVectorStateSpace>(3)
+        ->setBounds(anglebounds);
+    Qspace->as<ob::CompoundStateSpace>()
+        ->as<ob::RealVectorStateSpace>(4)
+        ->setBounds(anglebounds);
     // omegabounds.setLow(-.2);
     // omegabounds.setHigh(.2);
     // space->as<ob::CompoundStateSpace>()->as<ob::RealVectorStateSpace>(3)->setBounds(omegabounds);
@@ -67,8 +86,10 @@ class QuadrotorEnvironment {
     // Qspace->as<ob::CompoundStateSpace>()->as<ob::RealVectorStateSpace>(2)->setBounds(anglebounds);
     controlbounds.setLow(-0.1);
     controlbounds.setHigh(0.1);
-    controlbounds.setLow(0, 5);
-    controlbounds.setHigh(0, 15);
+    controlbounds.setLow(0, -5);
+    controlbounds.setHigh(0, 5);
+    controlbounds.setLow(1, -5);
+    controlbounds.setHigh(1, 5);
     cspace->as<QControlSpace>()->setBounds(controlbounds);
 
     // oc::SimpleSetup ss(cspace);
@@ -93,7 +114,7 @@ class QuadrotorEnvironment {
     bounds.setHigh(1, kMaxLength / 10);
     bounds.setLow(2, 0);
 
-    bounds.setHigh(2, 3 * kMaxHeight / 4);
+    bounds.setHigh(2, kMaxHeight);
 
     ss_->getStateSpace()
         ->as<ob::CompoundStateSpace>()
@@ -148,7 +169,7 @@ class QuadrotorEnvironment {
     goal->as<ob::SE3StateSpace::StateType>(0)->setX(final[0]);
     goal->as<ob::SE3StateSpace::StateType>(0)->setY(final[1]);
     goal->as<ob::SE3StateSpace::StateType>(0)->setZ(final[2]);
-    goal->as<ob::RealVectorStateSpace::StateType>(1)->values[0] = 0;
+    goal->as<ob::RealVectorStateSpace::StateType>(1)->values[0] = 15;
     goal->as<ob::RealVectorStateSpace::StateType>(1)->values[1] = 0;
     goal->as<ob::RealVectorStateSpace::StateType>(1)->values[2] = 0;
     // goal->as<ob::RealVectorStateSpace::StateType>(1)->values[0] = 20;
@@ -221,64 +242,28 @@ class QuadrotorEnvironment {
     return !world_->checkCollision() &&
            ss_->getSpaceInformation()->satisfiesBounds(state);
   }
+
   void QuadrotorODE(const oc::ODESolver::StateType& q,
                     const oc::Control* control,
                     oc::ODESolver::StateType& qdot) {
     const double* u =
         control->as<oc::RealVectorControlSpace::ControlType>()->values;
 
-    // zero out qdot
     qdot.resize(q.size(), 0);
 
-    // derivative of position
-    qdot[0] = q[7];
-    qdot[1] = q[8];
-    qdot[2] = q[9];
+    qdot[0] = q[7] * cos(q[9]);
+    qdot[1] = q[7] * sin(q[9]) + q[8] * sin(q[10]);
+    qdot[2] = q[8] * cos(q[10]);
 
-    // derivative of orientation
-    // 1. First convert omega to quaternion: qdot = omega * q / 2
-    ob::SO3StateSpace::StateType qomega;
-    qomega.w = 0;
-    qomega.x = .5 * u[1];
-    qomega.y = .5 * u[2];
-    qomega.z = 0;  //.5 * q[12];
+    // qdot[3] = q[8];
 
-    // 2. We include a numerical correction so that dot(q,qdot) = 0. This
-    // constraint is
-    // obtained by differentiating q * q_conj = 1
-    double delta = q[3] * qomega.x + q[4] * qomega.y + q[5] * qomega.z;
-
-    // 3. Finally, set the derivative of orientation
-    qdot[3] = qomega.x - delta * q[3];
-    qdot[4] = qomega.y - delta * q[4];
-    qdot[5] = qomega.z - delta * q[5];
-    qdot[6] = qomega.w - delta * q[6];
-
-    //            double angle = sqrt(u[1]*u[1]+u[2]*u[2]);
-    //            qdot[3] = cos(angle/2.0f);
-    //            qdot[4] = u[1]*sin(angle/2.0f)/angle;
-    //            qdot[5] = u[2]*sin(angle/2.0f)/angle;
-    //            qdot[5] = 0;
-
-    // derivative of velocity
-    // the z-axis of the body frame in world coordinates is equal to
-    // (2(wy+xz), 2(yz-wx), w^2-x^2-y^2+z^2).
-    // This can be easily verified by working out q * (0,0,1).
-    double massInv_ = 1.0;
-    double beta_ = 1e-6;
-    qdot[7] =
-        massInv_ * (2 * u[0] * (q[6] * q[4] + q[3] * q[5]) - beta_ * q[7]);
-    qdot[8] =
-        massInv_ * (2 * u[0] * (q[4] * q[5] - q[6] * q[3]) - beta_ * q[8]);
-    qdot[9] = massInv_ *
-              (u[0] * (q[6] * q[6] - q[3] * q[3] - q[4] * q[4] + q[5] * q[5]) -
-               9.8 - beta_ * q[9]);
-
-    // derivative of rotational velocity
-    // qdot[10] = u[1];
-    // qdot[11] = u[2];
-    // qdot[12] = u[3];
+    qdot[7] = u[0]; // vx
+    qdot[8] = u[1]; // vz
+    qdot[9] = u[2]; // wz
+    qdot[10] = u[3]; // wx
+    // qdot[9] = u[2];
   }
+
   /*
      ob::StateSpacePtr constructQStateSpace()
      {
@@ -301,7 +286,7 @@ class QuadrotorEnvironment {
                                 const oc::Control* /*control*/,
                                 const double /*duration*/, ob::State* result) {
     // Normalize orientation between 0 and 2*pi
-
+/*
     const ob::CompoundStateSpace* cs = Qspace->as<ob::CompoundStateSpace>();
     const ob::SO3StateSpace* SO3 =
         cs->as<ob::SE3StateSpace>(0)->as<ob::SO3StateSpace>(1);
@@ -314,6 +299,33 @@ class QuadrotorEnvironment {
     SO3->enforceBounds(&so3State);
     // Enforce velocity bounds
     cs->getSubspace(1)->enforceBounds(csState[1]);
+*/
+
+    ob::CompoundStateSpace::StateType& s =
+        *result->as<ob::CompoundStateSpace::StateType>();
+    ob::SE3StateSpace::StateType& pose = *s.as<ob::SE3StateSpace::StateType>(0);
+    ob::RealVectorStateSpace::StateType& angleRVSP1 =
+        *s.as<ob::RealVectorStateSpace::StateType>(3);
+    ob::RealVectorStateSpace::StateType& angleRVSP2 =
+        *s.as<ob::RealVectorStateSpace::StateType>(4);
+    double angle1 = angleRVSP1.values[0];
+    double angle2 = angleRVSP2.values[0];
+
+    Qspace->as<ob::CompoundStateSpace>()->getSubspace(1)->enforceBounds(s[1]);
+
+    // Enforce steering bounds
+    Qspace->as<ob::CompoundStateSpace>()->getSubspace(2)->enforceBounds(s[2]);
+    // space->as<ob::CompoundStateSpace>()->getSubspace(3)->enforceBounds(s[3]);
+    ob::ScopedState<ob::CompoundStateSpace> start(Qspace);
+
+    // double angle =
+    // start->as<ob::RealVectorStateSpace::StateType>(1)->values[0] ;
+    // const ob::SE3StateSpace::StateType* s =
+    // state->as<ob::CompoundStateSpace::StateType>()
+    //        ->components[0]->as<ob::SE3StateSpace::StateType>();
+    pose.rotation().setIdentity();
+    pose.rotation().setAxisAngle(0, 0, 1, angle1);
+    pose.rotation().setAxisAngle(1, 0, 0, angle2);
   }
 
   void printEdge(std::ostream& os, const ob::StateSpacePtr& space,
@@ -348,7 +360,7 @@ class FixedWingEnvironment {
     FWspace->as<ob::CompoundStateSpace>()->addSubspace(
         ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), .3);
     FWspace->as<ob::CompoundStateSpace>()->addSubspace(
-        ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), .0);
+        ob::StateSpacePtr(new ob::RealVectorStateSpace(3)), .0);
     // stateSpace->as<ob::CompoundStateSpace>()->addSubspace(ob::StateSpacePtr(new
     // stateSpace->as<ob::CompoundStateSpace>()->addSubspace(ob::StateSpacePtr(new
     // ob::RealVectorStateSpace(1)), .3);
@@ -356,7 +368,7 @@ class FixedWingEnvironment {
 
     oc::ControlSpacePtr cspace(new FWControlSpace(FWspace));
 
-    ob::RealVectorBounds velbounds(1), omegabounds(1), anglebounds(1),
+    ob::RealVectorBounds velbounds(1), omegabounds(1), anglebounds(1), extrabounds(3),
         controlbounds(3);
 
     velbounds.setLow(10);
@@ -373,9 +385,11 @@ class FixedWingEnvironment {
     FWspace->as<ob::CompoundStateSpace>()
         ->as<ob::RealVectorStateSpace>(2)
         ->setBounds(anglebounds);
+    extrabounds.setLow(-4000);
+    extrabounds.setHigh(4000);
     FWspace->as<ob::CompoundStateSpace>()
         ->as<ob::RealVectorStateSpace>(3)
-        ->setBounds(anglebounds);
+        ->setBounds(extrabounds);
     controlbounds.setLow(-0.3);  // V dot
     controlbounds.setHigh(0.3);
     controlbounds.setLow(1, -0.06);  // Z Dot
@@ -662,13 +676,11 @@ int main(int argc, char* argv[]) {
   world->addSkeleton(chicago);
   world->addSkeleton(huav);
 
-  Eigen::Vector3d start(10.0, 10.0, 30.0);
-  Eigen::Vector3d finish(20.0, 30.0, 100.0);
 
-  Eigen::Vector3d start1(100.0, 100.0, 100.0);
-  Eigen::Vector3d finish1(100.0, 100.0, 200.0);
+  Eigen::Vector3d start1(100.0, 100.0, 50.0);
+  Eigen::Vector3d finish1(100.0, 100.0, 400.0);
 
-  Eigen::Vector4d finish2(2000.0, 3000.0, 200.0, 0);
+  Eigen::Vector4d finish2(2000.0, 3000.0, 400.0, 0);
   Eigen::Vector4d start2(0, 0, 0, 0);
 
   if (argc < 2) {
@@ -714,11 +726,11 @@ int main(int argc, char* argv[]) {
 
     Eigen::Vector3d velnew(0, 0, 0);
     velnew = rot2 * (velold);  // + wvelold.cross(P));
-    std::cout << velnew << std::endl;
+    //std::cout << velnew << std::endl;
     start2(0) = linear[0];
     start2(1) = linear[1];
     start2(2) = linear[2];
-    start2(3) = 10;
+    start2(3) = linear[7];
     velnew(0);
     FixedWingEnvironment env1;
     env1.setWorld(world);
@@ -735,7 +747,7 @@ int main(int argc, char* argv[]) {
   // tf.rotate(Eigen::AngleAxisd(M_PI,
   // Eigen::Vector3d::UnitY())*Eigen::AngleAxisd(-M_PI/2,
   // Eigen::Vector3d::UnitX()));
-  tf.translation() = start;
+  tf.translation() = start1;
 
   MyWindow window(world);
   moveSkeleton(huav, tf);
@@ -747,11 +759,11 @@ int main(int argc, char* argv[]) {
       std::ifstream fin("result.txt");
 
       while (!fin.eof()) {
-        double x, y, z, ign;
-        double rx, ry, rz, rw;
+        float x, y, z, ign;
+        float rx, ry, rz, rw;
         // ign>>ign>>ign>>ign>>ign>>ign>>ign>>ign>>ign>>ign;
         fin >> x >> y >> z >> rx >> ry >> rz >> rw >> ign >> ign >> ign >>
-            ign >> ign >> ign >> ign;  // >> ign >> ign >> ign;
+            ign >> ign >> ign >> ign >> ign >> ign;  // >> ign >> ign >> ign;
 
         oldx = x - oldx;
         oldy = y - oldy;
