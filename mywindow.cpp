@@ -6,8 +6,8 @@ MyWindow::MyWindow(const ds::WorldPtr& world)
     mZoom = 0.040;
     mTranslate = true;
 // TODO add dart version detection here
-    mZnear = 0.01;
-    mZfar = 1000.0;
+//    mZnear = 0.01;
+//    mZfar = 1000.0;
 //    mPersp = 45.0;
 }
 

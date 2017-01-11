@@ -348,7 +348,7 @@ class FixedWingEnvironment {
     FWspace->as<ob::CompoundStateSpace>()->addSubspace(
         ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), .3);
     FWspace->as<ob::CompoundStateSpace>()->addSubspace(
-        ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), .3);
+        ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), .0);
     // stateSpace->as<ob::CompoundStateSpace>()->addSubspace(ob::StateSpacePtr(new
     // stateSpace->as<ob::CompoundStateSpace>()->addSubspace(ob::StateSpacePtr(new
     // ob::RealVectorStateSpace(1)), .3);
