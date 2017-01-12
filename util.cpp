@@ -28,7 +28,7 @@ void createBall(dd::SkeletonPtr& skl, const Eigen::Vector3d& size,
 
 void createBox(dd::SkeletonPtr& skl, const Eigen::Vector3d& size,
                const Eigen::Isometry3d& tf) {
-  dd::BodyNode* bn = skl->createJointAndBodyNodePair<dd::WeldJoint>().second;
+  dd::BodyNode* bn = skl->createJointAndBodyNodePair<dd::FreeJoint>().second;
 
   std::shared_ptr<dd::BoxShape> shape = std::make_shared<dd::BoxShape>(size);
   shape->setColor(Eigen::Vector3d(0.8, 0.8, 0.8));

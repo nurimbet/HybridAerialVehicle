@@ -678,7 +678,45 @@ int main(int argc, char* argv[])
     // std::cout << "collision detected " << world->checkCollision() << std::endl;
     world->addSkeleton(chicago);
     world->addSkeleton(huav);
+    
 
+
+    std::cout << "Collision CHecking Started" << std::endl;
+    dd::SkeletonPtr heightbox = dd::Skeleton::create("heightbox");
+    tf = Eigen::Isometry3d::Identity();
+    tf.translation() = Eigen::Vector3d(50, 50, 20);
+    createBox(heightbox, Eigen::Vector3d(300, 300, 2), tf);
+    setAllColors(heightbox, Eigen::Vector3d(1.0, 0.0, 0.0));
+    world->addSkeleton(heightbox);
+
+    for(int ii = 0; ii < kMaxWidth/100 - 1; ii++)
+    {
+        for(int jj = 0; jj < kMaxLength/100 - 1; jj++)
+        {
+            
+            int kk = 2;
+            tf.translation() = Eigen::Vector3d(ii*100 + 50, jj*100 + 50, kk*10);
+            moveSkeleton(heightbox, tf);
+            
+            bool colcheck = world->checkCollision();
+            while(colcheck)
+            {
+                kk = kk + 1;
+                tf.translation() = Eigen::Vector3d(ii*100 + 50, jj*100 + 50, kk*10);
+                moveSkeleton(heightbox, tf);
+            
+                colcheck = world->checkCollision();
+                
+            }
+            
+            std::cout << ii << " " << jj << " " << kk << std::endl;
+        }
+    }
+    tf.translation() = Eigen::Vector3d(50, 50, 2*10);
+    moveSkeleton(heightbox, tf);
+    
+    std::cout << "Collision Checking Ended" << std::endl;
+    
     double xs, ys, zs, qxs, qys, qzs, qws, vxs;
     double xf, yf, zf, qxf, qyf, qzf, qwf, vxf;
     
@@ -798,13 +836,13 @@ int main(int argc, char* argv[])
     world->removeSkeleton(uavball);
 
     tf = Eigen::Isometry3d::Identity();
+    tf.translation() = start;
     // tf.rotate(Eigen::AngleAxisd(-M_PI/2,
     // Eigen::Vector3d::UnitX())*Eigen::AngleAxisd(-M_PI,
     // Eigen::Vector3d::UnitY()));
     // tf.rotate(Eigen::AngleAxisd(M_PI,
     // Eigen::Vector3d::UnitY())*Eigen::AngleAxisd(-M_PI/2,
     // Eigen::Vector3d::UnitX()));
-    tf.translation() = start;
 
     MyWindow window(world);
     moveSkeleton(huav, tf);
