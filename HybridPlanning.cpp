@@ -688,32 +688,39 @@ int main(int argc, char* argv[])
     createBox(heightbox, Eigen::Vector3d(300, 300, 2), tf);
     setAllColors(heightbox, Eigen::Vector3d(1.0, 0.0, 0.0));
     world->addSkeleton(heightbox);
+    
+    int cellWidth = 100;
+    int heightResolution = 10;
+    //int heightMatrix[(int)(kMaxWidth/cellWidth) - 1][(int)(kMaxHeight/cellWidth) - 1];
 
-    for(int ii = 0; ii < kMaxWidth/100 - 1; ii++)
+    for(int ii = 0; ii < kMaxWidth/cellWidth - 1; ii++)
     {
-        for(int jj = 0; jj < kMaxLength/100 - 1; jj++)
+        for(int jj = 0; jj < kMaxLength/cellWidth - 1; jj++)
         {
             
             int kk = 2;
-            tf.translation() = Eigen::Vector3d(ii*100 + 50, jj*100 + 50, kk*10);
+            tf.translation() = Eigen::Vector3d(ii*cellWidth + cellWidth/2, jj*cellWidth + cellWidth/2, kk*heightResolution);
             moveSkeleton(heightbox, tf);
             
             bool colcheck = world->checkCollision();
-            while(colcheck)
+            while(colcheck && kk < ((kMaxHeight - 1 )/ heightResolution))
             {
                 kk = kk + 1;
-                tf.translation() = Eigen::Vector3d(ii*100 + 50, jj*100 + 50, kk*10);
+                tf.translation() = Eigen::Vector3d(ii*cellWidth + cellWidth/2, jj*cellWidth + cellWidth/2, kk*heightResolution);
                 moveSkeleton(heightbox, tf);
             
                 colcheck = world->checkCollision();
                 
             }
+            //heightMatrix[ii][jj] = kk * 10; 
+            std::cout << kk*10 << " ";
             
-            std::cout << ii << " " << jj << " " << kk << std::endl;
         }
+        std::cout << std::endl;
     }
-    tf.translation() = Eigen::Vector3d(50, 50, 2*10);
-    moveSkeleton(heightbox, tf);
+    world->removeSkeleton(heightbox);
+    //tf.translation() = Eigen::Vector3d(50, 50, 2*10);
+    //moveSkeleton(heightbox, tf);
     
     std::cout << "Collision Checking Ended" << std::endl;
     
