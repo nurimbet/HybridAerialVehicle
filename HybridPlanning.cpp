@@ -678,55 +678,12 @@ int main(int argc, char* argv[])
     // std::cout << "collision detected " << world->checkCollision() << std::endl;
     world->addSkeleton(chicago);
     world->addSkeleton(huav);
-    
 
 
-    std::cout << "Collision CHecking Started" << std::endl;
-    dd::SkeletonPtr heightbox = dd::Skeleton::create("heightbox");
-    tf = Eigen::Isometry3d::Identity();
-    tf.translation() = Eigen::Vector3d(50, 50, 20);
-    createBox(heightbox, Eigen::Vector3d(300, 300, 2), tf);
-    setAllColors(heightbox, Eigen::Vector3d(1.0, 0.0, 0.0));
-    world->addSkeleton(heightbox);
-    
-    int cellWidth = 100;
-    int heightResolution = 10;
-    //int heightMatrix[(int)(kMaxWidth/cellWidth) - 1][(int)(kMaxHeight/cellWidth) - 1];
 
-    for(int ii = 0; ii < kMaxWidth/cellWidth - 1; ii++)
-    {
-        for(int jj = 0; jj < kMaxLength/cellWidth - 1; jj++)
-        {
-            
-            int kk = 2;
-            tf.translation() = Eigen::Vector3d(ii*cellWidth + cellWidth/2, jj*cellWidth + cellWidth/2, kk*heightResolution);
-            moveSkeleton(heightbox, tf);
-            
-            bool colcheck = world->checkCollision();
-            while(colcheck && kk < ((kMaxHeight - 1 )/ heightResolution))
-            {
-                kk = kk + 1;
-                tf.translation() = Eigen::Vector3d(ii*cellWidth + cellWidth/2, jj*cellWidth + cellWidth/2, kk*heightResolution);
-                moveSkeleton(heightbox, tf);
-            
-                colcheck = world->checkCollision();
-                
-            }
-            //heightMatrix[ii][jj] = kk * 10; 
-            std::cout << kk*10 << " ";
-            
-        }
-        std::cout << std::endl;
-    }
-    world->removeSkeleton(heightbox);
-    //tf.translation() = Eigen::Vector3d(50, 50, 2*10);
-    //moveSkeleton(heightbox, tf);
-    
-    std::cout << "Collision Checking Ended" << std::endl;
-    
     double xs, ys, zs, qxs, qys, qzs, qws, vxs;
     double xf, yf, zf, qxf, qyf, qzf, qwf, vxf;
-    
+
     std::ifstream posfile("positions.txt");
     std::string posline;
     std::getline(posfile, posline);
@@ -736,15 +693,92 @@ int main(int argc, char* argv[])
     std::istringstream posissf(posline); 
     posissf >> xf >> yf >> zf >> qxf >> qyf >> qzf >> qwf >> vxf;
 
-    
-    
-    Eigen::Vector3d start(xs, ys, zs);
 
+    std::cout << "Collision CHecking Started" << std::endl;
+    dd::SkeletonPtr heightbox = dd::Skeleton::create("heightbox");
+    tf = Eigen::Isometry3d::Identity();
+    int kk = 2;
+    int heightResolution = 10;
+
+    tf.translation() = Eigen::Vector3d(xs, ys, kk*heightResolution);
+    createBox(heightbox, Eigen::Vector3d(200, 200, 2), tf);
+    setAllColors(heightbox, Eigen::Vector3d(1.0, 0.0, 0.0));
+    world->addSkeleton(heightbox);
+
+    bool colcheck = world->checkCollision();
+    while(colcheck && kk < ((kMaxHeight - 1 )/ heightResolution))
+    {
+        kk = kk + 1;
+        tf.translation() = Eigen::Vector3d(xs, ys, kk*heightResolution);
+        moveSkeleton(heightbox, tf);
+
+        colcheck = world->checkCollision();
+
+    }
+    double maxHeightStart = kk*heightResolution;
+    kk = 2;
+
+    tf.translation() = Eigen::Vector3d(xf, yf, kk*heightResolution);
+    moveSkeleton(heightbox, tf);
+
+    colcheck = world->checkCollision();
+    while(colcheck && kk < ((kMaxHeight - 1 )/ heightResolution))
+    {
+        kk = kk + 1;
+        tf.translation() = Eigen::Vector3d(xf, yf, kk*heightResolution);
+        moveSkeleton(heightbox, tf);
+
+        colcheck = world->checkCollision();
+
+    }
+    double maxHeightFinish = kk*heightResolution;
+    world->removeSkeleton(heightbox);
+
+    std::cout << maxHeightStart << " " << maxHeightFinish << std::endl;
+
+
+    //int heightMatrix[(int)(kMaxWidth/cellWidth) - 1][(int)(kMaxHeight/cellWidth) - 1];
+
+    /*
+       for(int ii = 0; ii < kMaxWidth/cellWidth - 1; ii++)
+       {
+       for(int jj = 0; jj < kMaxLength/cellWidth - 1; jj++)
+       {
+
+       int kk = 2;
+       tf.translation() = Eigen::Vector3d(ii*cellWidth + cellWidth/2, jj*cellWidth + cellWidth/2, kk*heightResolution);
+       moveSkeleton(heightbox, tf);
+
+       bool colcheck = world->checkCollision();
+       while(colcheck && kk < ((kMaxHeight - 1 )/ heightResolution))
+       {
+       kk = kk + 1;
+       tf.translation() = Eigen::Vector3d(ii*cellWidth + cellWidth/2, jj*cellWidth + cellWidth/2, kk*heightResolution);
+       moveSkeleton(heightbox, tf);
+
+       colcheck = world->checkCollision();
+
+       }
+    //heightMatrix[ii][jj] = kk * 10; 
+    std::cout << kk*10 << " ";
+
+    }
+    std::cout << std::endl;
+    }
+    world->removeSkeleton(heightbox);
+     */
+
+    std::cout << "Collision Checking Ended" << std::endl;
+
+    Eigen::Vector3d start(xs, ys, zs);
+    double anglerad =atan2((yf - ys) , (xf - xs));
+
+    std::cout << anglerad << " " << xs + 100*cos(anglerad) <<" " <<ys + 100*sin(anglerad)<<  std::endl;
     Eigen::Vector4d start1(xs, ys, zs, 0);
-    Eigen::Vector4d finish1(xs, ys, 400.0, 15.0);
+    Eigen::Vector4d finish1(xs + 100*cos(anglerad), ys + 100*sin(anglerad), maxHeightFinish, 15.0);
 
     Eigen::Vector4d start2(0, 0, 0, 0);
-    Eigen::Vector4d finish2(xf, yf, 400.0, 0);
+    Eigen::Vector4d finish2(xf - 100*cos(anglerad), yf - 100*sin(anglerad), maxHeightFinish, 0);
 
     Eigen::Vector4d start3(0, 0, 0, 0);
     Eigen::Vector4d finish3(xf, yf, zf, 0.0);
@@ -803,7 +837,7 @@ int main(int argc, char* argv[])
         env1.setWorld(world);
         env1.plan(start2, finish2);
 
-         
+
         std::ifstream file1("result.txt");
         line = getLastLine(file1);
         file1.close();
@@ -812,7 +846,7 @@ int main(int argc, char* argv[])
         std::cout << line << '\n';
         pos = 0;
         i = 0;
-        
+
         while ((pos = line.find(delimiter)) != std::string::npos && i < arsize) {
             token = line.substr(0, pos);
             // std::cout << token << std::endl;
@@ -825,18 +859,18 @@ int main(int argc, char* argv[])
         start3(1) = linear[1];
         start3(2) = linear[2];
         start3(3) = 10;
-        
+
         //start2(3) = linear[7];
         //start3(3) = 10;
         //velnew(0);
         QuadrotorEnvironment env2;
         env2.setWorld(world);
         env2.plan(start3, finish3);
-      /*  
-        FixedWingEnvironment env1;
-        env1.setWorld(world);
-        env1.plan(start2, finish2);
-    */
+        /*  
+            FixedWingEnvironment env1;
+            env1.setWorld(world);
+            env1.plan(start2, finish2);
+         */
     }
 
     dd::SkeletonPtr uavball = world->getSkeleton("huav");
