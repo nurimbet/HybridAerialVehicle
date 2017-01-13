@@ -45,13 +45,13 @@ class QuadrotorEnvironment {
             Qspace->as<ob::CompoundStateSpace>()->addSubspace(
                     ob::StateSpacePtr(new ob::SE3StateSpace()), 1.);
             Qspace->as<ob::CompoundStateSpace>()->addSubspace(
-                    ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), 0.3);
+                    ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), 0.5);
             Qspace->as<ob::CompoundStateSpace>()->addSubspace(
-                    ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), 0.3);
+                    ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), .5);
             Qspace->as<ob::CompoundStateSpace>()->addSubspace(
-                    ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), 0.3);
+                    ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), 0.0);
             Qspace->as<ob::CompoundStateSpace>()->addSubspace(
-                    ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), 0.3);
+                    ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), 0.0);
             // stateSpace->as<ob::CompoundStateSpace>()->addSubspace(ob::StateSpacePtr(new
             // ob::RealVectorStateSpace(1)), .3);
             Qspace->as<ob::CompoundStateSpace>()->lock();
@@ -107,7 +107,7 @@ class QuadrotorEnvironment {
                             this, std::placeholders::_1, std::placeholders::_2,
                             std::placeholders::_3, std::placeholders::_4)));
             ss_->getSpaceInformation()->setPropagationStepSize(0.1);
-            ss_->getSpaceInformation()->setMinMaxControlDuration(100, 100);
+            ss_->getSpaceInformation()->setMinMaxControlDuration(10, 10);
 
             ob::RealVectorBounds bounds(3);
             bounds.setLow(0);
@@ -149,12 +149,17 @@ class QuadrotorEnvironment {
                         this, std::placeholders::_1));
         }
 
-        bool plan(const Eigen::Vector4d& init, const Eigen::Vector4d& final) {
+        //bool plan(const Eigen::Vector4d& init, const Eigen::Vector4d& final) {
+        bool plan(const Eigen::Vector4d& init, const Eigen::Vector4d& final,const Eigen::Vector4d& qinit, const Eigen::Vector4d& qfinal){
             if (!ss_) return false;
-
             ob::ScopedState<ob::CompoundStateSpace> start(ss_->getStateSpace());
+            double len = sqrt(pow(qinit[0],2)+pow(qinit[1],2)+pow(qinit[2],2)+pow(qinit[3],2));
+            start->as<ob::SE3StateSpace::StateType>(0)->rotation().x = qinit[0]/len;
+            start->as<ob::SE3StateSpace::StateType>(0)->rotation().y = qinit[1]/len;
+            start->as<ob::SE3StateSpace::StateType>(0)->rotation().z = qinit[2]/len;
+            start->as<ob::SE3StateSpace::StateType>(0)->rotation().w = qinit[3]/len;
 
-            start->as<ob::SE3StateSpace::StateType>(0)->rotation().setIdentity();
+            //start->as<ob::SE3StateSpace::StateType>(0)->rotation().setIdentity();
             start->as<ob::SE3StateSpace::StateType>(0)->setX(init[0]);
             start->as<ob::SE3StateSpace::StateType>(0)->setY(init[1]);
             start->as<ob::SE3StateSpace::StateType>(0)->setZ(init[2]);
@@ -358,9 +363,9 @@ class FixedWingEnvironment {
             FWspace->as<ob::CompoundStateSpace>()->addSubspace(
                     ob::StateSpacePtr(new ob::SE3StateSpace()), 1.);
             FWspace->as<ob::CompoundStateSpace>()->addSubspace(
-                    ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), .3);
+                    ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), 0.5);
             FWspace->as<ob::CompoundStateSpace>()->addSubspace(
-                    ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), .3);
+                    ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), .0);
             FWspace->as<ob::CompoundStateSpace>()->addSubspace(
                     ob::StateSpacePtr(new ob::RealVectorStateSpace(3)), .0);
             // stateSpace->as<ob::CompoundStateSpace>()->addSubspace(ob::StateSpacePtr(new
@@ -413,7 +418,7 @@ class FixedWingEnvironment {
                             this, std::placeholders::_1, std::placeholders::_2,
                             std::placeholders::_3, std::placeholders::_4)));
             ss_->getSpaceInformation()->setPropagationStepSize(0.1);
-            ss_->getSpaceInformation()->setMinMaxControlDuration(10, 10);
+            ss_->getSpaceInformation()->setMinMaxControlDuration(100, 100);
 
             ob::RealVectorBounds bounds(3);
             bounds.setLow(0);
@@ -454,12 +459,18 @@ class FixedWingEnvironment {
                         this, std::placeholders::_1));
         }
 
-        bool plan(const Eigen::Vector4d& init, const Eigen::Vector4d& final) {
+        bool plan(const Eigen::Vector4d& init, const Eigen::Vector4d& final,const Eigen::Vector4d& qinit, const Eigen::Vector4d& qfinal){
+        //bool plan(const Eigen::Vector4d& init, const Eigen::Vector4d& final){
             if (!ss_) return false;
 
             ob::ScopedState<ob::CompoundStateSpace> start(ss_->getStateSpace());
+            double len = sqrt(pow(qinit[0],2)+pow(qinit[1],2)+pow(qinit[2],2)+pow(qinit[3],2));
+            start->as<ob::SE3StateSpace::StateType>(0)->rotation().x = qinit[0]/len;
+            start->as<ob::SE3StateSpace::StateType>(0)->rotation().y = qinit[1]/len;
+            start->as<ob::SE3StateSpace::StateType>(0)->rotation().z = qinit[2]/len;
+            start->as<ob::SE3StateSpace::StateType>(0)->rotation().w = qinit[3]/len;
 
-            start->as<ob::SE3StateSpace::StateType>(0)->rotation().setIdentity();
+            //start->as<ob::SE3StateSpace::StateType>(0)->rotation().setIdentity();
             start->as<ob::SE3StateSpace::StateType>(0)->setX(init[0]);
             start->as<ob::SE3StateSpace::StateType>(0)->setY(init[1]);
             start->as<ob::SE3StateSpace::StateType>(0)->setZ(init[2]);
@@ -552,7 +563,7 @@ class FixedWingEnvironment {
             qdot[8] = u[2];
             // qdot[9] = u[2];
         }
-
+/*
         ob::StateSpacePtr constructFWStateSpace() {
             ob::StateSpacePtr stateSpace =
                 ob::StateSpacePtr(new ob::CompoundStateSpace());
@@ -568,7 +579,7 @@ class FixedWingEnvironment {
             stateSpace->as<ob::CompoundStateSpace>()->lock();
             return stateSpace;
         }
-
+*/
         void FixedWingPostIntegration(const ob::State* /*state*/,
                 const oc::Control* /*control*/,
                 const double /*duration*/, ob::State* result) {
@@ -694,7 +705,6 @@ int main(int argc, char* argv[])
     posissf >> xf >> yf >> zf >> qxf >> qyf >> qzf >> qwf >> vxf;
 
 
-    std::cout << "Collision CHecking Started" << std::endl;
     dd::SkeletonPtr heightbox = dd::Skeleton::create("heightbox");
     tf = Eigen::Isometry3d::Identity();
     int kk = 2;
@@ -768,7 +778,9 @@ int main(int argc, char* argv[])
     world->removeSkeleton(heightbox);
      */
 
-    std::cout << "Collision Checking Ended" << std::endl;
+    posisss >> xs >> ys >> zs >> qxs >> qys >> qzs >> qws >> vxs;
+    Eigen::Quaterniond quats(qws, qxs, qys, qzs);
+    Eigen::Quaterniond quatf(qwf, qxf, qyf, qzf);
 
     Eigen::Vector3d start(xs, ys, zs);
     double anglerad =atan2((yf - ys) , (xf - xs));
@@ -776,12 +788,18 @@ int main(int argc, char* argv[])
     std::cout << anglerad << " " << xs + 100*cos(anglerad) <<" " <<ys + 100*sin(anglerad)<<  std::endl;
     Eigen::Vector4d start1(xs, ys, zs, 0);
     Eigen::Vector4d finish1(xs + 100*cos(anglerad), ys + 100*sin(anglerad), maxHeightFinish, 15.0);
+    Eigen::Vector4d qstart1(0, 0, 0, 1);
+    Eigen::Vector4d qfinish1(0, 0, 0, 1);
 
     Eigen::Vector4d start2(0, 0, 0, 0);
-    Eigen::Vector4d finish2(xf - 100*cos(anglerad), yf - 100*sin(anglerad), maxHeightFinish, 0);
+    Eigen::Vector4d finish2(xf - 100*cos(anglerad), yf - 100*sin(anglerad), maxHeightFinish, 0.0);
+    Eigen::Vector4d qstart2(0, 0, 0, 1);
+    Eigen::Vector4d qfinish2(0, 0, 0, 1);
 
     Eigen::Vector4d start3(0, 0, 0, 0);
     Eigen::Vector4d finish3(xf, yf, zf, 0.0);
+    Eigen::Vector4d qstart3(0, 0, 0, 1);
+    Eigen::Vector4d qfinish3(0, 0, 0, 1);
 
     if (argc < 2) {
         std::ofstream resultfile1;
@@ -790,7 +808,7 @@ int main(int argc, char* argv[])
 
         QuadrotorEnvironment env;
         env.setWorld(world);
-        env.plan(start1, finish1);
+        env.plan(start1, finish1 , qstart1, qfinish1);
 
         std::ifstream file("result.txt");
         std::string line = getLastLine(file);
@@ -803,7 +821,7 @@ int main(int argc, char* argv[])
         size_t pos = 0;
         std::string token;
         int i = 0;
-        int arsize = 5;
+        int arsize = 8;
         float linear[arsize];
         while ((pos = line.find(delimiter)) != std::string::npos && i < arsize) {
             token = line.substr(0, pos);
@@ -830,12 +848,19 @@ int main(int argc, char* argv[])
         start2(0) = linear[0];
         start2(1) = linear[1];
         start2(2) = linear[2];
-        //start2(3) = linear[7];
         start2(3) = 15;
+        qstart2(0) = linear[3];
+        qstart2(1) = linear[4];
+        qstart2(2) = linear[5];
+        qstart2(3) = linear[6];
+        finish2(2) = start2(2); 
+        //start2(3) = linear[7];
         //velnew(0);
         FixedWingEnvironment env1;
         env1.setWorld(world);
-        env1.plan(start2, finish2);
+        //env1.plan(start2, finish2, qstart2, qfinish2);
+        //env1.plan(start2, finish2);
+        env1.plan(start2, finish2 , qstart2, qstart2);
 
 
         std::ifstream file1("result.txt");
@@ -858,14 +883,20 @@ int main(int argc, char* argv[])
         start3(0) = linear[0];
         start3(1) = linear[1];
         start3(2) = linear[2];
+        //finish3(2) = start3(2);
         start3(3) = 10;
+        qstart3(0) = linear[3];
+        qstart3(1) = linear[4];
+        qstart3(2) = linear[5];
+        qstart3(3) = linear[6];
 
         //start2(3) = linear[7];
         //start3(3) = 10;
         //velnew(0);
         QuadrotorEnvironment env2;
         env2.setWorld(world);
-        env2.plan(start3, finish3);
+        //env2.plan(start3, finish3);
+        env2.plan(start3, finish3 , qstart3, qstart3);
         /*  
             FixedWingEnvironment env1;
             env1.setWorld(world);
