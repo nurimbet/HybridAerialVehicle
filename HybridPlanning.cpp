@@ -789,7 +789,10 @@ int main(int argc, char* argv[])
     Eigen::Vector4d start1(xs, ys, zs, 0);
     Eigen::Vector4d finish1(xs + 100*cos(anglerad), ys + 100*sin(anglerad), maxHeightFinish, 15.0);
     Eigen::Vector4d qstart1(0, 0, 0, 1);
-    Eigen::Vector4d qfinish1(0, 0, 0, 1);
+    Eigen::Quaterniond quatstart1(Eigen::AngleAxisd(anglerad, Eigen::Vector3d::UnitZ()));
+    //Eigen::Vector4d qfinish1(0,0,0,1);
+    Eigen::Vector4d qfinish1(quatstart1.x(), quatstart1.y(), quatstart1.z(), quatstart1.w());
+    std::cout << qfinish1 << std::endl;
 
     Eigen::Vector4d start2(0, 0, 0, 0);
     Eigen::Vector4d finish2(xf - 100*cos(anglerad), yf - 100*sin(anglerad), maxHeightFinish, 0.0);

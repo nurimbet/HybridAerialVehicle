@@ -3,7 +3,7 @@
 MyWindow::MyWindow(const ds::WorldPtr& world) 
 { 
     setWorld(world); 
-    mZoom = 0.040;
+    mZoom = 0.040/4;
     mTranslate = true;
 // TODO add dart version detection here
 //    mZnear = 0.01;
