@@ -49,9 +49,9 @@ class QuadrotorEnvironment {
             Qspace->as<ob::CompoundStateSpace>()->addSubspace(
                     ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), .5);
             Qspace->as<ob::CompoundStateSpace>()->addSubspace(
-                    ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), 0.0);
+                    ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), 0.5);
             Qspace->as<ob::CompoundStateSpace>()->addSubspace(
-                    ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), 0.0);
+                    ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), 0.5);
             // stateSpace->as<ob::CompoundStateSpace>()->addSubspace(ob::StateSpacePtr(new
             // ob::RealVectorStateSpace(1)), .3);
             Qspace->as<ob::CompoundStateSpace>()->lock();
@@ -150,7 +150,8 @@ class QuadrotorEnvironment {
         }
 
         //bool plan(const Eigen::Vector4d& init, const Eigen::Vector4d& final) {
-        bool plan(const Eigen::Vector4d& init, const Eigen::Vector4d& final,const Eigen::Vector4d& qinit, const Eigen::Vector4d& qfinal){
+        //bool plan(const Eigen::Vector3d& init, const Eigen::Vector3d& final,const Eigen::Vector4d& qinit, const Eigen::Vector4d& qfinal){
+        bool plan(const Eigen::Vector3d& init, const Eigen::Vector3d& final,const Eigen::Vector4d& qinit, const Eigen::Vector4d& qfinal,const Eigen::Vector2d& ainit, const Eigen::Vector2d& afinal ){
             if (!ss_) return false;
             ob::ScopedState<ob::CompoundStateSpace> start(ss_->getStateSpace());
             double len = sqrt(pow(qinit[0],2)+pow(qinit[1],2)+pow(qinit[2],2)+pow(qinit[3],2));
@@ -163,22 +164,28 @@ class QuadrotorEnvironment {
             start->as<ob::SE3StateSpace::StateType>(0)->setX(init[0]);
             start->as<ob::SE3StateSpace::StateType>(0)->setY(init[1]);
             start->as<ob::SE3StateSpace::StateType>(0)->setZ(init[2]);
-            start->as<ob::RealVectorStateSpace::StateType>(1)->values[0] = init[3];
-            start->as<ob::RealVectorStateSpace::StateType>(1)->values[1] = 0;
-            start->as<ob::RealVectorStateSpace::StateType>(1)->values[2] = 0;
+            start->as<ob::RealVectorStateSpace::StateType>(1)->values[0] = ainit[0]; // NOTE
+            start->as<ob::RealVectorStateSpace::StateType>(2)->values[0] = 0;
+            start->as<ob::RealVectorStateSpace::StateType>(3)->values[0] = ainit[1];
+            start->as<ob::RealVectorStateSpace::StateType>(4)->values[0] = 0;
             // start->as<ob::RealVectorStateSpace::StateType>(1)->values[3] = 0;
             // start->as<ob::RealVectorStateSpace::StateType>(1)->values[4] = 0;
             // start->as<ob::RealVectorStateSpace::StateType>(1)->values[5] = 0;
 
             ob::ScopedState<ob::CompoundStateSpace> goal(ss_->getStateSpace());
 
-            goal->as<ob::SE3StateSpace::StateType>(0)->rotation().setIdentity();
+            //goal->as<ob::SE3StateSpace::StateType>(0)->rotation().setIdentity();
+            goal->as<ob::SE3StateSpace::StateType>(0)->rotation().x = qfinal[0]/len;
+            goal->as<ob::SE3StateSpace::StateType>(0)->rotation().y = qfinal[1]/len;
+            goal->as<ob::SE3StateSpace::StateType>(0)->rotation().z = qfinal[2]/len;
+            goal->as<ob::SE3StateSpace::StateType>(0)->rotation().w = qfinal[3]/len;
             goal->as<ob::SE3StateSpace::StateType>(0)->setX(final[0]);
             goal->as<ob::SE3StateSpace::StateType>(0)->setY(final[1]);
             goal->as<ob::SE3StateSpace::StateType>(0)->setZ(final[2]);
-            goal->as<ob::RealVectorStateSpace::StateType>(1)->values[0] = final[3];
-            goal->as<ob::RealVectorStateSpace::StateType>(1)->values[1] = 0;
-            goal->as<ob::RealVectorStateSpace::StateType>(1)->values[2] = 0;
+            goal->as<ob::RealVectorStateSpace::StateType>(1)->values[0] = afinal[0]; // NOTE
+            goal->as<ob::RealVectorStateSpace::StateType>(2)->values[0] = 0;
+            goal->as<ob::RealVectorStateSpace::StateType>(3)->values[0] = afinal[1];
+            goal->as<ob::RealVectorStateSpace::StateType>(4)->values[0] = 0;
             // goal->as<ob::RealVectorStateSpace::StateType>(1)->values[0] = 20;
             // goal->as<ob::RealVectorStateSpace::StateType>(1)->values[1] = 0;
             // goal->as<ob::RealVectorStateSpace::StateType>(1)->values[2] = 0;
@@ -365,9 +372,9 @@ class FixedWingEnvironment {
             FWspace->as<ob::CompoundStateSpace>()->addSubspace(
                     ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), 0.5);
             FWspace->as<ob::CompoundStateSpace>()->addSubspace(
-                    ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), .0);
+                    ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), .5);
             FWspace->as<ob::CompoundStateSpace>()->addSubspace(
-                    ob::StateSpacePtr(new ob::RealVectorStateSpace(3)), .0);
+                    ob::StateSpacePtr(new ob::RealVectorStateSpace(3)), .5);
             // stateSpace->as<ob::CompoundStateSpace>()->addSubspace(ob::StateSpacePtr(new
             // stateSpace->as<ob::CompoundStateSpace>()->addSubspace(ob::StateSpacePtr(new
             // ob::RealVectorStateSpace(1)), .3);
@@ -459,7 +466,7 @@ class FixedWingEnvironment {
                         this, std::placeholders::_1));
         }
 
-        bool plan(const Eigen::Vector4d& init, const Eigen::Vector4d& final,const Eigen::Vector4d& qinit, const Eigen::Vector4d& qfinal){
+        bool plan(const Eigen::Vector3d& init, const Eigen::Vector3d& final,const Eigen::Vector4d& qinit, const Eigen::Vector4d& qfinal,const Eigen::Vector2d& ainit, const Eigen::Vector2d& afinal ){
         //bool plan(const Eigen::Vector4d& init, const Eigen::Vector4d& final){
             if (!ss_) return false;
 
@@ -474,17 +481,27 @@ class FixedWingEnvironment {
             start->as<ob::SE3StateSpace::StateType>(0)->setX(init[0]);
             start->as<ob::SE3StateSpace::StateType>(0)->setY(init[1]);
             start->as<ob::SE3StateSpace::StateType>(0)->setZ(init[2]);
-            start->as<ob::RealVectorStateSpace::StateType>(1)->values[0] = init[3];
-            start->as<ob::RealVectorStateSpace::StateType>(1)->values[1] = 0;
-            start->as<ob::RealVectorStateSpace::StateType>(1)->values[2] = 0;
+            start->as<ob::RealVectorStateSpace::StateType>(1)->values[0] = ainit[0]; // NOTE
+            start->as<ob::RealVectorStateSpace::StateType>(2)->values[0] = ainit[1];
+            start->as<ob::RealVectorStateSpace::StateType>(3)->values[0] = 0;
+            start->as<ob::RealVectorStateSpace::StateType>(3)->values[1] = 0;
+            start->as<ob::RealVectorStateSpace::StateType>(3)->values[2] = 0;
 
             ob::ScopedState<ob::CompoundStateSpace> goal(ss_->getStateSpace());
 
-            goal->as<ob::SE3StateSpace::StateType>(0)->rotation().setIdentity();
+            goal->as<ob::SE3StateSpace::StateType>(0)->rotation().x = qfinal[0]/len;
+            goal->as<ob::SE3StateSpace::StateType>(0)->rotation().y = qfinal[1]/len;
+            goal->as<ob::SE3StateSpace::StateType>(0)->rotation().z = qfinal[2]/len;
+            goal->as<ob::SE3StateSpace::StateType>(0)->rotation().w = qfinal[3]/len;
+            //goal->as<ob::SE3StateSpace::StateType>(0)->rotation().setIdentity();
             goal->as<ob::SE3StateSpace::StateType>(0)->setX(final[0]);
             goal->as<ob::SE3StateSpace::StateType>(0)->setY(final[1]);
             goal->as<ob::SE3StateSpace::StateType>(0)->setZ(final[2]);
-            goal->as<ob::RealVectorStateSpace::StateType>(1)->values[0] = final[3];
+            goal->as<ob::RealVectorStateSpace::StateType>(1)->values[0] = afinal[0]; // NOTE
+            goal->as<ob::RealVectorStateSpace::StateType>(2)->values[0] = afinal[1];
+            goal->as<ob::RealVectorStateSpace::StateType>(3)->values[0] = 0;
+            goal->as<ob::RealVectorStateSpace::StateType>(3)->values[1] = 0;
+            goal->as<ob::RealVectorStateSpace::StateType>(3)->values[2] = 0;
 
             ss_->setStartAndGoalStates(start, goal, 0.5);
             ss_->setup();
@@ -786,23 +803,29 @@ int main(int argc, char* argv[])
     double anglerad =atan2((yf - ys) , (xf - xs));
 
     std::cout << anglerad << " " << xs + 100*cos(anglerad) <<" " <<ys + 100*sin(anglerad)<<  std::endl;
-    Eigen::Vector4d start1(xs, ys, zs, 0);
-    Eigen::Vector4d finish1(xs + 100*cos(anglerad), ys + 100*sin(anglerad), maxHeightFinish, 15.0);
-    Eigen::Vector4d qstart1(0, 0, 0, 1);
+    Eigen::Vector3d start1(xs, ys, zs);
+    Eigen::Vector3d finish1(xs + 100*cos(anglerad), ys + 100*sin(anglerad), maxHeightFinish);
+    Eigen::Vector4d qstart1(qxs, qys, qzs, qws);
     Eigen::Quaterniond quatstart1(Eigen::AngleAxisd(anglerad, Eigen::Vector3d::UnitZ()));
     //Eigen::Vector4d qfinish1(0,0,0,1);
     Eigen::Vector4d qfinish1(quatstart1.x(), quatstart1.y(), quatstart1.z(), quatstart1.w());
+    Eigen::Vector2d astart1(0, 0);
+    Eigen::Vector2d afinish1(15, anglerad);
     std::cout << qfinish1 << std::endl;
 
-    Eigen::Vector4d start2(0, 0, 0, 0);
-    Eigen::Vector4d finish2(xf - 100*cos(anglerad), yf - 100*sin(anglerad), maxHeightFinish, 0.0);
+    Eigen::Vector3d start2(0, 0, 0);
+    Eigen::Vector3d finish2(xf - 100*cos(anglerad), yf - 100*sin(anglerad), maxHeightFinish);
     Eigen::Vector4d qstart2(0, 0, 0, 1);
     Eigen::Vector4d qfinish2(0, 0, 0, 1);
+    Eigen::Vector2d astart2(0, 0);
+    Eigen::Vector2d afinish2(0, 0);
 
-    Eigen::Vector4d start3(0, 0, 0, 0);
-    Eigen::Vector4d finish3(xf, yf, zf, 0.0);
+    Eigen::Vector3d start3(0, 0, 0);
+    Eigen::Vector3d finish3(xf, yf, zf);
     Eigen::Vector4d qstart3(0, 0, 0, 1);
     Eigen::Vector4d qfinish3(0, 0, 0, 1);
+    Eigen::Vector2d astart3(0, 0);
+    Eigen::Vector2d afinish3(0, 0);
 
     if (argc < 2) {
         std::ofstream resultfile1;
@@ -811,7 +834,7 @@ int main(int argc, char* argv[])
 
         QuadrotorEnvironment env;
         env.setWorld(world);
-        env.plan(start1, finish1 , qstart1, qfinish1);
+        env.plan(start1, finish1 , qstart1, qfinish1, astart1, afinish1);
 
         std::ifstream file("result.txt");
         std::string line = getLastLine(file);
@@ -824,7 +847,7 @@ int main(int argc, char* argv[])
         size_t pos = 0;
         std::string token;
         int i = 0;
-        int arsize = 8;
+        int arsize = 10;
         float linear[arsize];
         while ((pos = line.find(delimiter)) != std::string::npos && i < arsize) {
             token = line.substr(0, pos);
@@ -851,7 +874,10 @@ int main(int argc, char* argv[])
         start2(0) = linear[0];
         start2(1) = linear[1];
         start2(2) = linear[2];
-        start2(3) = 15;
+        astart2(0) = 15;
+        astart2(1) = linear[9];
+        afinish2(0) = 10;
+        afinish2(1) = linear[9];
         qstart2(0) = linear[3];
         qstart2(1) = linear[4];
         qstart2(2) = linear[5];
@@ -863,7 +889,7 @@ int main(int argc, char* argv[])
         env1.setWorld(world);
         //env1.plan(start2, finish2, qstart2, qfinish2);
         //env1.plan(start2, finish2);
-        env1.plan(start2, finish2 , qstart2, qstart2);
+        env1.plan(start2, finish2 , qstart2, qstart2, astart2, afinish2);
 
 
         std::ifstream file1("result.txt");
@@ -887,11 +913,16 @@ int main(int argc, char* argv[])
         start3(1) = linear[1];
         start3(2) = linear[2];
         //finish3(2) = start3(2);
-        start3(3) = 10;
+        astart3(0) = 10;
+        astart3(1) = linear[8];
+        afinish3(0) = 0;
+        afinish3(1) = linear[8];
         qstart3(0) = linear[3];
         qstart3(1) = linear[4];
         qstart3(2) = linear[5];
         qstart3(3) = linear[6];
+            
+        std::cout << start3 << " " << qstart3 << std::endl;
 
         //start2(3) = linear[7];
         //start3(3) = 10;
@@ -899,7 +930,7 @@ int main(int argc, char* argv[])
         QuadrotorEnvironment env2;
         env2.setWorld(world);
         //env2.plan(start3, finish3);
-        env2.plan(start3, finish3 , qstart3, qstart3);
+        env2.plan(start3, finish3 , qstart3, qstart3, astart3, afinish3);
         /*  
             FixedWingEnvironment env1;
             env1.setWorld(world);
@@ -959,7 +990,7 @@ int main(int argc, char* argv[])
             // moveSkeleton(huavball, tf);
 
             window.setViewTrack(Eigen::Vector3d(x, y, z), quat1);
-            std::this_thread::sleep_for(std::chrono::milliseconds(5));
+            std::this_thread::sleep_for(std::chrono::milliseconds(30));
 
             oldx = x;
             oldy = y;
