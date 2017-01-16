@@ -71,8 +71,8 @@ class QuadrotorEnvironment {
             Qspace->as<ob::CompoundStateSpace>()
                 ->as<ob::RealVectorStateSpace>(2)
                 ->setBounds(velboundx);
-            angleboundz.setLow(-0.785*2);
-            angleboundz.setHigh(0.785*2);
+            angleboundz.setLow(-0.785*4);
+            angleboundz.setHigh(0.785*4);
             Qspace->as<ob::CompoundStateSpace>()
                 ->as<ob::RealVectorStateSpace>(3)
                 ->setBounds(angleboundz);
@@ -338,8 +338,8 @@ class QuadrotorEnvironment {
             // state->as<ob::CompoundStateSpace::StateType>()
             //        ->components[0]->as<ob::SE3StateSpace::StateType>();
             pose.rotation().setIdentity();
-            pose.rotation().setAxisAngle(0, 0, 1, angle1);
             pose.rotation().setAxisAngle(1, 0, 0, angle2);
+            pose.rotation().setAxisAngle(0, 0, 1, angle1);
         }
 
         void printEdge(std::ostream& os, const ob::StateSpacePtr& space,
@@ -990,7 +990,7 @@ int main(int argc, char* argv[])
             // moveSkeleton(huavball, tf);
 
             window.setViewTrack(Eigen::Vector3d(x, y, z), quat1);
-            std::this_thread::sleep_for(std::chrono::milliseconds(30));
+            std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
             oldx = x;
             oldy = y;
