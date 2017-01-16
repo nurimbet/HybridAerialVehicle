@@ -52,8 +52,6 @@ class QuadrotorEnvironment {
                     ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), 0.5);
             Qspace->as<ob::CompoundStateSpace>()->addSubspace(
                     ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), 0.5);
-            // stateSpace->as<ob::CompoundStateSpace>()->addSubspace(ob::StateSpacePtr(new
-            // ob::RealVectorStateSpace(1)), .3);
             Qspace->as<ob::CompoundStateSpace>()->lock();
 
             // control input is made up of the 3 states
@@ -81,11 +79,7 @@ class QuadrotorEnvironment {
             Qspace->as<ob::CompoundStateSpace>()
                 ->as<ob::RealVectorStateSpace>(4)
                 ->setBounds(angleboundx);
-            // omegabounds.setLow(-.2);
-            // omegabounds.setHigh(.2);
-            // space->as<ob::CompoundStateSpace>()->as<ob::RealVectorStateSpace>(3)->setBounds(omegabounds);
 
-            // Qspace->as<ob::CompoundStateSpace>()->as<ob::RealVectorStateSpace>(2)->setBounds(anglebounds);
             controlbounds.setLow(-0.1);
             controlbounds.setHigh(0.1);
             controlbounds.setLow(0, -5);
@@ -94,7 +88,6 @@ class QuadrotorEnvironment {
             controlbounds.setHigh(1, 5);
             cspace->as<QControlSpace>()->setBounds(controlbounds);
 
-            // oc::SimpleSetup ss(cspace);
             ss_.reset(new oc::SimpleSetup(cspace));
 
             oc::ODESolverPtr odeSolver(new oc::ODEBasicSolver<>(
@@ -125,32 +118,11 @@ class QuadrotorEnvironment {
 
             Qspace->setup();
 
-            /*
-               ob::RealVectorStateSpace *space = new ob::RealVectorStateSpace();
-
-               space->addDimension(0.0, kMaxWidth);
-               space->addDimension(0.0, kMaxLength);
-               space->addDimension(0.0, kMaxHeight);
-
-               ss_.reset(new oc::SimpleSetup(ob::StateSpacePtr(space)));
-
-            // set state validity checking for this space
-            ss_->setStateValidityChecker(std::bind(&QuadrotorEnvironment::isStateValid,
-            this, std::placeholders::_1));
-            space->setup();
-            //ss_->getSpaceInformation()->setStateValidityCheckingResolution(
-
-            ss_->getSpaceInformation()->setStateValidityCheckingResolution(
-            1e-4);
-
-             */
             ss_->setPlanner(ob::PlannerPtr(new oc::SST(ss_->getSpaceInformation())));
             ss_->setStateValidityChecker(std::bind(&QuadrotorEnvironment::isStateValid,
                         this, std::placeholders::_1));
         }
 
-        //bool plan(const Eigen::Vector4d& init, const Eigen::Vector4d& final) {
-        //bool plan(const Eigen::Vector3d& init, const Eigen::Vector3d& final,const Eigen::Vector4d& qinit, const Eigen::Vector4d& qfinal){
         bool plan(const Eigen::Vector3d& init, const Eigen::Vector3d& final,const Eigen::Vector4d& qinit, const Eigen::Vector4d& qfinal,const Eigen::Vector2d& ainit, const Eigen::Vector2d& afinal ){
             if (!ss_) return false;
             ob::ScopedState<ob::CompoundStateSpace> start(ss_->getStateSpace());
@@ -168,9 +140,6 @@ class QuadrotorEnvironment {
             start->as<ob::RealVectorStateSpace::StateType>(2)->values[0] = 0;
             start->as<ob::RealVectorStateSpace::StateType>(3)->values[0] = ainit[1];
             start->as<ob::RealVectorStateSpace::StateType>(4)->values[0] = 0;
-            // start->as<ob::RealVectorStateSpace::StateType>(1)->values[3] = 0;
-            // start->as<ob::RealVectorStateSpace::StateType>(1)->values[4] = 0;
-            // start->as<ob::RealVectorStateSpace::StateType>(1)->values[5] = 0;
 
             ob::ScopedState<ob::CompoundStateSpace> goal(ss_->getStateSpace());
 
@@ -186,11 +155,6 @@ class QuadrotorEnvironment {
             goal->as<ob::RealVectorStateSpace::StateType>(2)->values[0] = 0;
             goal->as<ob::RealVectorStateSpace::StateType>(3)->values[0] = afinal[1];
             goal->as<ob::RealVectorStateSpace::StateType>(4)->values[0] = 0;
-            // goal->as<ob::RealVectorStateSpace::StateType>(1)->values[0] = 20;
-            // goal->as<ob::RealVectorStateSpace::StateType>(1)->values[1] = 0;
-            // goal->as<ob::RealVectorStateSpace::StateType>(1)->values[2] = 0;
-            // goal->as<ob::RealVectorStateSpace::StateType>(1)->values[2] = 0;
-            // goal->as<ob::RealVectorStateSpace::StateType>(1)->values[0] = final[3];
 
             ss_->setStartAndGoalStates(start, goal, 0.1);
             ss_->setup();
@@ -198,7 +162,6 @@ class QuadrotorEnvironment {
             // this will run the algorithm for one second
             ss_->solve(60 * 1);
 
-            // ss_->solve(1000); // it will run for 1000 seconds
 
             const std::size_t ns = ss_->getProblemDefinition()->getSolutionCount();
             OMPL_INFORM("Found %d solutions", (int)ns);
@@ -230,27 +193,18 @@ class QuadrotorEnvironment {
 
     private:
         bool isStateValid(const ob::State* state) {
-            // const ob::ScopedState<ob::CompoundStateSpace> st(ss_->getStateSpace(),
-            // state);
-            // const ob::SE3StateSpace::StateType* s =
-            // st->as<ompl::base::SE3StateSpace::StateType>(0);
-            // double x = s->as<ob::RealVectorStateSpace::StateType>(0)->values[0];
             const ob::SE3StateSpace::StateType* s =
                 state->as<ob::CompoundStateSpace::StateType>()
                 ->components[0]
                 ->as<ob::SE3StateSpace::StateType>();
-            // const ob::RealVectorStateSpace::StateType *pos =
-            // pose->as<ob::RealVectorStateSpace::StateType>(0);
             double x = s->getX();
             double y = s->getY();
             double z = s->getZ();
 
-            // std::cout <<  x << " "<< y << " "<<z<<std::endl;
             Eigen::Isometry3d tf;
             tf = Eigen::Isometry3d::Identity();
             tf.translation() = Eigen::Vector3d(x, y, z);
             dd::SkeletonPtr uavball = world_->getSkeleton("huav");
-            // uavball->getJoint()->setTransformFromParentBodyNode(tf);
             moveSkeleton(uavball, tf);
 
             return !world_->checkCollision() &&
@@ -269,51 +223,17 @@ class QuadrotorEnvironment {
             qdot[1] = q[7] * sin(q[9]) - q[8] * cos(q[9]) * sin(q[10]);
             qdot[2] = q[8] * cos(q[10]);
 
-            // qdot[3] = q[8];
 
             qdot[7] = u[0]; // vx
             qdot[8] = u[1]; // vz
             qdot[9] = u[2]; // wz
             qdot[10] = u[3]; // wx
-            // qdot[9] = u[2];
         }
 
-        /*
-           ob::StateSpacePtr constructQStateSpace()
-           {
-           ob::StateSpacePtr stateSpace = ob::StateSpacePtr(new
-           ob::CompoundStateSpace());
-
-           stateSpace->as<ob::CompoundStateSpace>()->addSubspace(ob::StateSpacePtr(new
-           ob::SE3StateSpace()), 1.);
-           stateSpace->as<ob::CompoundStateSpace>()->addSubspace(ob::StateSpacePtr(new
-           ob::RealVectorStateSpace(1)), .3);
-           stateSpace->as<ob::CompoundStateSpace>()->addSubspace(ob::StateSpacePtr(new
-           ob::RealVectorStateSpace(1)), .3);
-        //stateSpace->as<ob::CompoundStateSpace>()->addSubspace(ob::StateSpacePtr(new
-        ob::RealVectorStateSpace(1)), .3);
-        stateSpace->as<ob::CompoundStateSpace>()->lock();
-        return stateSpace;
-        }
-         */
         void QuadrotorPostIntegration(const ob::State* /*state*/,
                 const oc::Control* /*control*/,
                 const double /*duration*/, ob::State* result) {
             // Normalize orientation between 0 and 2*pi
-            /*
-               const ob::CompoundStateSpace* cs = Qspace->as<ob::CompoundStateSpace>();
-               const ob::SO3StateSpace* SO3 =
-               cs->as<ob::SE3StateSpace>(0)->as<ob::SO3StateSpace>(1);
-               ob::CompoundStateSpace::StateType& csState =
-             *result->as<ob::CompoundStateSpace::StateType>();
-             ob::SO3StateSpace::StateType& so3State =
-             csState.as<ob::SE3StateSpace::StateType>(0)->rotation();
-
-            // Normalize the quaternion representation for the quadrotor
-            SO3->enforceBounds(&so3State);
-            // Enforce velocity bounds
-            cs->getSubspace(1)->enforceBounds(csState[1]);
-             */
 
             ob::CompoundStateSpace::StateType& s =
                 *result->as<ob::CompoundStateSpace::StateType>();
@@ -329,14 +249,8 @@ class QuadrotorEnvironment {
 
             // Enforce steering bounds
             Qspace->as<ob::CompoundStateSpace>()->getSubspace(2)->enforceBounds(s[2]);
-            // space->as<ob::CompoundStateSpace>()->getSubspace(3)->enforceBounds(s[3]);
             ob::ScopedState<ob::CompoundStateSpace> start(Qspace);
 
-            // double angle =
-            // start->as<ob::RealVectorStateSpace::StateType>(1)->values[0] ;
-            // const ob::SE3StateSpace::StateType* s =
-            // state->as<ob::CompoundStateSpace::StateType>()
-            //        ->components[0]->as<ob::SE3StateSpace::StateType>();
             pose.rotation().setIdentity();
             pose.rotation().setAxisAngle(1, 0, 0, angle2);
             pose.rotation().setAxisAngle(0, 0, 1, angle1);
@@ -375,9 +289,6 @@ class FixedWingEnvironment {
                     ob::StateSpacePtr(new ob::RealVectorStateSpace(1)), .5);
             FWspace->as<ob::CompoundStateSpace>()->addSubspace(
                     ob::StateSpacePtr(new ob::RealVectorStateSpace(3)), .5);
-            // stateSpace->as<ob::CompoundStateSpace>()->addSubspace(ob::StateSpacePtr(new
-            // stateSpace->as<ob::CompoundStateSpace>()->addSubspace(ob::StateSpacePtr(new
-            // ob::RealVectorStateSpace(1)), .3);
             FWspace->as<ob::CompoundStateSpace>()->lock();
 
             oc::ControlSpacePtr cspace(new FWControlSpace(FWspace));
@@ -390,9 +301,6 @@ class FixedWingEnvironment {
             FWspace->as<ob::CompoundStateSpace>()
                 ->as<ob::RealVectorStateSpace>(1)
                 ->setBounds(velbounds);
-            // omegabounds.setLow(-.2);
-            // omegabounds.setHigh(.2);
-            // space->as<ob::CompoundStateSpace>()->as<ob::RealVectorStateSpace>(3)->setBounds(omegabounds);
 
             anglebounds.setLow(-4000);
             anglebounds.setHigh(4000);
@@ -412,7 +320,6 @@ class FixedWingEnvironment {
             controlbounds.setHigh(2, .06);
             cspace->as<FWControlSpace>()->setBounds(controlbounds);
 
-            // oc::SimpleSetup ss(cspace);
             ss_.reset(new oc::SimpleSetup(cspace));
 
             oc::ODESolverPtr odeSolver(new oc::ODEBasicSolver<>(
@@ -442,32 +349,12 @@ class FixedWingEnvironment {
 
             FWspace->setup();
 
-            /*
-               ob::RealVectorStateSpace *space = new ob::RealVectorStateSpace();
-
-               space->addDimension(0.0, kMaxWidth);
-               space->addDimension(0.0, kMaxLength);
-               space->addDimension(0.0, kMaxHeight);
-
-               ss_.reset(new oc::SimpleSetup(ob::StateSpacePtr(space)));
-
-            // set state validity checking for this space
-            ss_->setStateValidityChecker(std::bind(&FixedWingEnvironment::isStateValid,
-            this, std::placeholders::_1));
-            space->setup();
-            //ss_->getSpaceInformation()->setStateValidityCheckingResolution(
-            //        1.0 / space->getMaximumExtent());
-            ss_->getSpaceInformation()->setStateValidityCheckingResolution(
-            1e-4);
-
-             */
             ss_->setPlanner(ob::PlannerPtr(new oc::RRT(ss_->getSpaceInformation())));
             ss_->setStateValidityChecker(std::bind(&FixedWingEnvironment::isStateValid,
                         this, std::placeholders::_1));
         }
 
         bool plan(const Eigen::Vector3d& init, const Eigen::Vector3d& final,const Eigen::Vector4d& qinit, const Eigen::Vector4d& qfinal,const Eigen::Vector2d& ainit, const Eigen::Vector2d& afinal ){
-        //bool plan(const Eigen::Vector4d& init, const Eigen::Vector4d& final){
             if (!ss_) return false;
 
             ob::ScopedState<ob::CompoundStateSpace> start(ss_->getStateSpace());
@@ -509,7 +396,6 @@ class FixedWingEnvironment {
             // this will run the algorithm for one second
             ss_->solve(60 * 1);
 
-            // ss_->solve(1000); // it will run for 1000 seconds
 
             const std::size_t ns = ss_->getProblemDefinition()->getSolutionCount();
             OMPL_INFORM("Found %d solutions", (int)ns);
@@ -531,35 +417,24 @@ class FixedWingEnvironment {
 
     private:
         bool isStateValid(const ob::State* state) {
-            // const ob::ScopedState<ob::CompoundStateSpace> st(ss_->getStateSpace(),
-            // state);
-            // const ob::SE3StateSpace::StateType* s =
-            // st->as<ompl::base::SE3StateSpace::StateType>(0);
-            // double x = s->as<ob::RealVectorStateSpace::StateType>(0)->values[0];
             const ob::SE3StateSpace::StateType* s =
                 state->as<ob::CompoundStateSpace::StateType>()
                 ->components[0]
                 ->as<ob::SE3StateSpace::StateType>();
-            // const ob::RealVectorStateSpace::StateType *pos =
-            // pose->as<ob::RealVectorStateSpace::StateType>(0);
             double x = s->getX();
             double y = s->getY();
             double z = s->getZ();
 
-            // std::cout <<  x << " "<< y << " "<<z<<std::endl;
 
             Eigen::Isometry3d tf;
             tf = Eigen::Isometry3d::Identity();
             tf.translation() = Eigen::Vector3d(x, y, z);
 
             dd::SkeletonPtr uavball = world_->getSkeleton("huav");
-            // uavball->getJoint()->setTransformFromParentBodyNode(tf);
             moveSkeleton(uavball, tf);
 
-            // return true;  // stub
             return !world_->checkCollision() &&
                 ss_->getSpaceInformation()->satisfiesBounds(state);
-            // return true;
         }
 
         void FixedWingODE(const oc::ODESolver::StateType& q,
@@ -574,11 +449,9 @@ class FixedWingEnvironment {
             qdot[1] = q[7] * sin(q[8]);
             qdot[2] = q[7] * u[1];
 
-            // qdot[3] = q[8];
 
             qdot[7] = u[0];
             qdot[8] = u[2];
-            // qdot[9] = u[2];
         }
 /*
         ob::StateSpacePtr constructFWStateSpace() {
@@ -612,14 +485,8 @@ class FixedWingEnvironment {
 
             // Enforce steering bounds
             FWspace->as<ob::CompoundStateSpace>()->getSubspace(2)->enforceBounds(s[2]);
-            // space->as<ob::CompoundStateSpace>()->getSubspace(3)->enforceBounds(s[3]);
             ob::ScopedState<ob::CompoundStateSpace> start(FWspace);
 
-            // double angle =
-            // start->as<ob::RealVectorStateSpace::StateType>(1)->values[0] ;
-            // const ob::SE3StateSpace::StateType* s =
-            // state->as<ob::CompoundStateSpace::StateType>()
-            //        ->components[0]->as<ob::SE3StateSpace::StateType>();
             pose.rotation().setIdentity();
             pose.rotation().setAxisAngle(0, 0, 1, angle);
         }
@@ -667,18 +534,9 @@ int main(int argc, char* argv[])
 
     dd::SkeletonPtr chicago =
         du::SdfParser::readSkeleton(prefix + std::string("/Chicago.sdf"));
-    // dd::SkeletonPtr chicago
-    // =du::SdfParser::readSkeleton(("/home/nurimbet/Research/HybridAerialVehicle/Chicago.sdf"));
     setAllColors(chicago, Eigen::Vector3d(0.57, 0.6, 0.67));
     dd::SkeletonPtr huav = dd::Skeleton::create("huav");
     dd::SkeletonPtr huavball = dd::Skeleton::create("huavball");
-
-    // dd::SkeletonPtr huav
-    // =du::SdfParser::readSkeleton(("/home/arms/Downloads/HybridAerialVehicle/uav.sdf"));
-
-    // du::SdfParser::readSkeleton(("/home/nurimbet/Research/HybridAerialVehicle/uav.sdf"));
-
-    // dd::SkeletonPtr huav = dd::Skeleton::create("huav");
 
     Eigen::Isometry3d tf(Eigen::Isometry3d::Identity());
 
@@ -687,23 +545,10 @@ int main(int argc, char* argv[])
     createBall(huavball, Eigen::Vector3d(3, 3, 3), tf);
 
     world->addSkeleton(huav);
-    // world->addSkeleton(huavball);
     huav = du::SdfParser::readSkeleton(prefix + std::string("/uav.sdf"));
-    // huav =
-    // du::SdfParser::readSkeleton(("/home/nurimbet/Research/HybridAerialVehicle/uav.sdf"));
-
-    //    huav->getJoint(0)->setTransformFromParentBodyNode(tf);
-    // moveSkeleton(huav, tf);
-
-    // createBox(huav, size,tf) ;
 
     setAllColors(huav, Eigen::Vector3d(1, 1, 0));
-    //
-    // ADD CODE HERE
-    // or use OOP if you want
-    //
 
-    // std::cout << "collision detected " << world->checkCollision() << std::endl;
     world->addSkeleton(chicago);
     world->addSkeleton(huav);
 
@@ -762,38 +607,6 @@ int main(int argc, char* argv[])
     world->removeSkeleton(heightbox);
 
     std::cout << maxHeightStart << " " << maxHeightFinish << std::endl;
-
-
-    //int heightMatrix[(int)(kMaxWidth/cellWidth) - 1][(int)(kMaxHeight/cellWidth) - 1];
-
-    /*
-       for(int ii = 0; ii < kMaxWidth/cellWidth - 1; ii++)
-       {
-       for(int jj = 0; jj < kMaxLength/cellWidth - 1; jj++)
-       {
-
-       int kk = 2;
-       tf.translation() = Eigen::Vector3d(ii*cellWidth + cellWidth/2, jj*cellWidth + cellWidth/2, kk*heightResolution);
-       moveSkeleton(heightbox, tf);
-
-       bool colcheck = world->checkCollision();
-       while(colcheck && kk < ((kMaxHeight - 1 )/ heightResolution))
-       {
-       kk = kk + 1;
-       tf.translation() = Eigen::Vector3d(ii*cellWidth + cellWidth/2, jj*cellWidth + cellWidth/2, kk*heightResolution);
-       moveSkeleton(heightbox, tf);
-
-       colcheck = world->checkCollision();
-
-       }
-    //heightMatrix[ii][jj] = kk * 10; 
-    std::cout << kk*10 << " ";
-
-    }
-    std::cout << std::endl;
-    }
-    world->removeSkeleton(heightbox);
-     */
 
     posisss >> xs >> ys >> zs >> qxs >> qys >> qzs >> qws >> vxs;
     Eigen::Quaterniond quats(qws, qxs, qys, qzs);
@@ -857,20 +670,7 @@ int main(int argc, char* argv[])
             i++;
             // std::cout << token << std::endl;
         }
-        /*for (i = 0; i < 8; i++) {
-        // std::cout << linear[i] << std::endl;
-        start2(i) = linear[i];
-        }*/
 
-        //        std::cout << start2 << std::endl;
-
-        //Eigen::Matrix3d rot2;
-        //rot2 = Eigen::Quaterniond(linear[3], linear[4], linear[5], linear[6]);
-        //Eigen::Vector3d velold(linear[7], linear[8], linear[9]);
-
-        //Eigen::Vector3d velnew(0, 0, 0);
-        //velnew = rot2 * (velold);  // + wvelold.cross(P));
-        //std::cout << velnew << std::endl;
         start2(0) = linear[0];
         start2(1) = linear[1];
         start2(2) = linear[2];
@@ -883,36 +683,30 @@ int main(int argc, char* argv[])
         qstart2(2) = linear[5];
         qstart2(3) = linear[6];
         finish2(2) = start2(2); 
-        //start2(3) = linear[7];
-        //velnew(0);
+
         FixedWingEnvironment env1;
         env1.setWorld(world);
-        //env1.plan(start2, finish2, qstart2, qfinish2);
-        //env1.plan(start2, finish2);
+
         env1.plan(start2, finish2 , qstart2, qstart2, astart2, afinish2);
 
 
         std::ifstream file1("result.txt");
         line = getLastLine(file1);
         file1.close();
-        // float x,y,z;
-        // file >> x>>y>>z;
+
         std::cout << line << '\n';
         pos = 0;
         i = 0;
 
         while ((pos = line.find(delimiter)) != std::string::npos && i < arsize) {
             token = line.substr(0, pos);
-            // std::cout << token << std::endl;
             linear[i] = std::stof(token);
             line.erase(0, pos + delimiter.length());
             i++;
-            // std::cout << token << std::endl;
         }
         start3(0) = linear[0];
         start3(1) = linear[1];
         start3(2) = linear[2];
-        //finish3(2) = start3(2);
         astart3(0) = 10;
         astart3(1) = linear[8];
         afinish3(0) = 0;
@@ -924,18 +718,9 @@ int main(int argc, char* argv[])
             
         std::cout << start3 << " " << qstart3 << std::endl;
 
-        //start2(3) = linear[7];
-        //start3(3) = 10;
-        //velnew(0);
         QuadrotorEnvironment env2;
         env2.setWorld(world);
-        //env2.plan(start3, finish3);
         env2.plan(start3, finish3 , qstart3, qstart3, astart3, afinish3);
-        /*  
-            FixedWingEnvironment env1;
-            env1.setWorld(world);
-            env1.plan(start2, finish2);
-         */
     }
 
     dd::SkeletonPtr uavball = world->getSkeleton("huav");
@@ -943,12 +728,6 @@ int main(int argc, char* argv[])
 
     tf = Eigen::Isometry3d::Identity();
     tf.translation() = start;
-    // tf.rotate(Eigen::AngleAxisd(-M_PI/2,
-    // Eigen::Vector3d::UnitX())*Eigen::AngleAxisd(-M_PI,
-    // Eigen::Vector3d::UnitY()));
-    // tf.rotate(Eigen::AngleAxisd(M_PI,
-    // Eigen::Vector3d::UnitY())*Eigen::AngleAxisd(-M_PI/2,
-    // Eigen::Vector3d::UnitX()));
 
     MyWindow window(world);
     moveSkeleton(huav, tf);
@@ -962,19 +741,13 @@ int main(int argc, char* argv[])
             while (!fin.eof()) {
             float x, y, z, ign;
             float rx, ry, rz, rw;
-            // ign>>ign>>ign>>ign>>ign>>ign>>ign>>ign>>ign>>ign;
             fin >> x >> y >> z >> rx >> ry >> rz >> rw >> ign >> ign >> ign >>
             ign >> ign >> ign >> ign >> ign >> ign;  // >> ign >> ign >> ign;
 
             oldx = x - oldx;
             oldy = y - oldy;
             angleRot = -atan2(oldx, oldy);
-            // std::cout << angleRot <<std::endl;
-            // std::cout << rx << " " <<ry<< " "<<rz << " "<<rw<<std::endl;
             Eigen::Isometry3d tf = Eigen::Isometry3d::Identity();
-            // tf.rotate(Eigen::AngleAxisd(M_PI,
-            // Eigen::Vector3d::UnitY())*Eigen::AngleAxisd(-M_PI/2,
-            // Eigen::Vector3d::UnitX()));
 
             if (angleRot == -0) {
                 angleRot = angleRotOld;
@@ -982,12 +755,11 @@ int main(int argc, char* argv[])
 
             Eigen::Quaterniond quat(rw, rx, ry, rz);
             Eigen::Quaterniond quat1(rw, -rx, -ry, -rz);
-            // tf.rotate(Eigen::AngleAxisd(angleRot, Eigen::Vector3d::UnitZ()));
+
             tf.rotate(quat);
             tf.translation() = Eigen::Vector3d(x, y, z);
 
             moveSkeleton(huav, tf);
-            // moveSkeleton(huavball, tf);
 
             window.setViewTrack(Eigen::Vector3d(x, y, z), quat1);
             std::this_thread::sleep_for(std::chrono::milliseconds(5));
@@ -1003,13 +775,10 @@ int main(int argc, char* argv[])
 
     glutInit(&argc, argv);
     window.initWindow(640 * 2, 480 * 2, "SDF");
-    // planWithSimpleSetup();
-    // window.refreshTimer(5);
+
     glutMainLoop();
 
     t.join();
-
-    // std::cout << "OMPL version: " << OMPL_VERSION << std::endl;
 
     return 0;
 }
