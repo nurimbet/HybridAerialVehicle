@@ -203,9 +203,16 @@ class QuadrotorEnvironment {
 
     private:
         bool isStateValid(const ob::State* state) {
-            double x = state->as<ob::RealVectorStateSpace::StateType>()->values[0]; 
-            double y = state->as<ob::RealVectorStateSpace::StateType>()->values[1]; 
-            double z = state->as<ob::RealVectorStateSpace::StateType>()->values[2];
+            const ob::RealVectorStateSpace::StateType* s =
+                state->as<ob::CompoundStateSpace::StateType>()
+                ->components[0]
+                ->as<ob::RealVectorStateSpace::StateType>();
+            double x = s->values[0];
+            double y = s->values[1];
+            double z = s->values[2];
+            //double x = state->as<ob::RealVectorStateSpace::StateType>()->values[0]; 
+            //double y = state->as<ob::RealVectorStateSpace::StateType>()->values[1]; 
+            //double z = state->as<ob::RealVectorStateSpace::StateType>()->values[2];
 
             Eigen::Isometry3d tf;
             tf = Eigen::Isometry3d::Identity();
@@ -403,9 +410,16 @@ class FixedWingEnvironment {
 
     private:
         bool isStateValid(const ob::State* state) {
-            double x = state->as<ob::RealVectorStateSpace::StateType>()->values[0]; 
-            double y = state->as<ob::RealVectorStateSpace::StateType>()->values[1]; 
-            double z = state->as<ob::RealVectorStateSpace::StateType>()->values[2];
+            const ob::RealVectorStateSpace::StateType* s =
+                state->as<ob::CompoundStateSpace::StateType>()
+                ->components[0]
+                ->as<ob::RealVectorStateSpace::StateType>();
+            double x = s->values[0];
+            double y = s->values[1];
+            double z = s->values[2];
+            //double x = state->as<ob::RealVectorStateSpace::StateType>()->values[0]; 
+            //double y = state->as<ob::RealVectorStateSpace::StateType>()->values[1]; 
+            //double z = state->as<ob::RealVectorStateSpace::StateType>()->values[2];
 
             Eigen::Isometry3d tf;
             tf = Eigen::Isometry3d::Identity();
