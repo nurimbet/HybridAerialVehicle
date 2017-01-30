@@ -136,7 +136,7 @@ class QuadrotorEnvironment {
 
             Qspace->setup();
 
-            ss_->setPlanner(ob::PlannerPtr(new oc::SST(ss_->getSpaceInformation())));
+            ss_->setPlanner(ob::PlannerPtr(new oc::RRT(ss_->getSpaceInformation())));
             ss_->setStateValidityChecker(std::bind(&QuadrotorEnvironment::isStateValid,
                         this, std::placeholders::_1));
         }
@@ -217,10 +217,10 @@ class QuadrotorEnvironment {
 
             // this will run the algorithm for one second
             if(typeGlob == QuadrotorType::TakeOff) {
-                ss_->solve(60 * 1 * 1);
+                ss_->solve(60 * 1 * 20);
             }
             else{
-                ss_->solve(60 * 4 * 1);
+                ss_->solve(60 * 4 * 7.5);
             }
 
 
@@ -403,7 +403,7 @@ class FixedWingEnvironment {
 
             FWspace->setup();
 
-            ss_->setPlanner(ob::PlannerPtr(new oc::SST(ss_->getSpaceInformation())));
+            ss_->setPlanner(ob::PlannerPtr(new oc::RRT(ss_->getSpaceInformation())));
             ss_->setStateValidityChecker(std::bind(&FixedWingEnvironment::isStateValid,
                         this, std::placeholders::_1));
         }
@@ -438,7 +438,7 @@ class FixedWingEnvironment {
             ss_->setup();
 
             // this will run the algorithm for one second
-            ss_->solve(60 * 1* 1);
+            ss_->solve(60 * 1* 20);
 
 
             const std::size_t ns = ss_->getProblemDefinition()->getSolutionCount();
@@ -574,6 +574,7 @@ int main(int argc, char* argv[])
     dd::SkeletonPtr chicago =
         du::SdfParser::readSkeleton(prefix + std::string("/Chicago.sdf"));
     setAllColors(chicago, Eigen::Vector3d(0.57, 0.6, 0.67));
+    //setAllColors(chicago, Eigen::Vector3d(0.0, 0.0, 1.0));
     dd::SkeletonPtr huav = dd::Skeleton::create("huav");
     dd::SkeletonPtr huavball = dd::Skeleton::create("huavball");
 
@@ -586,7 +587,7 @@ int main(int argc, char* argv[])
     world->addSkeleton(huav);
     huav = du::SdfParser::readSkeleton(prefix + std::string("/uav.sdf"));
 
-    setAllColors(huav, Eigen::Vector3d(1, 1, 0));
+    setAllColors(huav, Eigen::Vector3d(1, 0, 0));
 
     world->addSkeleton(chicago);
     world->addSkeleton(huav);
@@ -765,60 +766,71 @@ int main(int argc, char* argv[])
     dd::SkeletonPtr uavball = world->getSkeleton("huav");
     world->removeSkeleton(uavball);
 
-    tf = Eigen::Isometry3d::Identity();
-    tf.translation() = start;
+    //tf = Eigen::Isometry3d::Identity();
+    //tf.translation() = start;
+
+    //MyWindow window(world);
+    //moveSkeleton(huav, tf);
+    //moveSkeleton(huavball, tf);
+
+    //std::thread t([&]()
+    //{
+        // std::this_thread::sleep_for(std::chrono::seconds(1));
+        //while (true) 
+        //{
+            std::ifstream fin("result.txt");
+            int cnt = 0;
+
+            while (!fin.eof()) 
+            {
+                cnt ++;
+                float x, y, z, ign;
+                float angz, angx;
+                //float rx, ry, rz, rw;
+                fin >> x >> y >> z >> ign >> angz >> ign >>
+                angx >> ign >> ign >> ign >> ign >> ign;  // >> ign >> ign >> ign;
+
+                Eigen::Isometry3d tf = Eigen::Isometry3d::Identity();
+
+
+                Eigen::Quaterniond quat(Eigen::AngleAxisd(angz, Eigen::Vector3d::UnitZ())*Eigen::AngleAxisd(angx, Eigen::Vector3d::UnitX()));
+                Eigen::Quaterniond quat1(1,0,0,0);
+
+                tf.rotate(quat);
+                tf.translation() = Eigen::Vector3d(x, y, z);
+                
+                if (cnt % 100 == 1){ 
+                    //createBall(huav1, Eigen::Vector3d(4, 4, 4), tf);
+                    /*std::string name = std::string("huav") + std::to_string(cnt);
+                    dd::SkeletonPtr huav1;// =  dd::Skeleton::create(name);
+                    huav1 = du::SdfParser::readSkeleton(prefix + std::string("/uav.sdf"));
+                    moveSkeleton(huav1, tf);
+                    //setAllColors(huav1, Eigen::Vector3d(1, 1, 0));
+                    huav1->setName(name);
+                    world->addSkeleton(huav1);
+                    moveSkeleton(huav1, tf);
+                    */
+                    
+                    dd::SkeletonPtr huav1 = huav->clone();// =  dd::Skeleton::create(name);
+                    world->addSkeleton(huav1);
+                    moveSkeleton(huav1, tf);
+                }
+
+                //window.setViewTrack(Eigen::Vector3d(x, y, z), quat1);
+                //std::this_thread::sleep_for(std::chrono::milliseconds(5));
+
+            }
+            //std::this_thread::sleep_for(std::chrono::seconds(2));
+        //}
+    //}); 
+
 
     MyWindow window(world);
-    moveSkeleton(huav, tf);
-    moveSkeleton(huavball, tf);
-    double oldx, oldy, oldz, angleRot, angleRotOld = 0.0;
-    std::thread t([&]() {
-    // std::this_thread::sleep_for(std::chrono::seconds(1));
-    while (true) {
-    std::ifstream fin("result.txt");
-
-    while (!fin.eof()) {
-    float x, y, z, ign;
-    float angz, angx;
-    //float rx, ry, rz, rw;
-    fin >> x >> y >> z >> ign >> angz >> ign >>
-    angx >> ign >> ign >> ign >> ign >> ign;  // >> ign >> ign >> ign;
-
-    oldx = x - oldx;
-    oldy = y - oldy;
-    angleRot = -atan2(oldx, oldy);
-    Eigen::Isometry3d tf = Eigen::Isometry3d::Identity();
-
-    if (angleRot == -0) {
-    angleRot = angleRotOld;
-    }
-
-    Eigen::Quaterniond quat(Eigen::AngleAxisd(angz, Eigen::Vector3d::UnitZ())*Eigen::AngleAxisd(angx, Eigen::Vector3d::UnitX()));
-    Eigen::Quaterniond quat1(1,0,0,0);
-
-    tf.rotate(quat);
-    tf.translation() = Eigen::Vector3d(x, y, z);
-
-    moveSkeleton(huav, tf);
-
-    window.setViewTrack(Eigen::Vector3d(x, y, z), quat1);
-    std::this_thread::sleep_for(std::chrono::milliseconds(5));
-
-    oldx = x;
-    oldy = y;
-    oldz = z;
-    angleRotOld = angleRot;
-    }
-    std::this_thread::sleep_for(std::chrono::seconds(2));
-    }
-    }); 
-
-
     glutInit(&argc, argv);
     window.initWindow(640 * 2, 480 * 2, "SDF");
     glutMainLoop();
 
-   t.join();
+//   t.join();
 
     return 0;
 }

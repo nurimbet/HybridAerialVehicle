@@ -5,10 +5,11 @@ namespace ds = dart::simulation;
 
 void setAllColors(const dd::SkeletonPtr& object, const Eigen::Vector3d& color) {
   // Set the color of all the shapes in the object
+    Eigen::Vector4d col(color(0), color(1),color(2), 1);
   for (size_t i = 0; i < object->getNumBodyNodes(); ++i) {
     dd::BodyNode* bn = object->getBodyNode(i);
     for (size_t j = 0; j < bn->getNumVisualizationShapes(); ++j)
-      bn->getVisualizationShape(j)->setColor(color);
+      bn->getVisualizationShape(j)->setColor(col);
   }
 }
 
