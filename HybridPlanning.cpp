@@ -261,9 +261,6 @@ class QuadrotorEnvironment {
             double x = s->values[0];
             double y = s->values[1];
             double z = s->values[2];
-            //double x = state->as<ob::RealVectorStateSpace::StateType>()->values[0]; 
-            //double y = state->as<ob::RealVectorStateSpace::StateType>()->values[1]; 
-            //double z = state->as<ob::RealVectorStateSpace::StateType>()->values[2];
 
             Eigen::Isometry3d tf;
             tf = Eigen::Isometry3d::Identity();
@@ -413,7 +410,6 @@ class FixedWingEnvironment {
 
             ob::ScopedState<ob::CompoundStateSpace> start(ss_->getStateSpace());
 
-            //start->as<ob::SE3StateSpace::StateType>(0)->rotation().setIdentity();
             start->as<ob::RealVectorStateSpace::StateType>(0)->values[0] = init[0];
             start->as<ob::RealVectorStateSpace::StateType>(0)->values[1] = init[1];
             start->as<ob::RealVectorStateSpace::StateType>(0)->values[2] = init[2];
@@ -468,9 +464,6 @@ class FixedWingEnvironment {
             double x = s->values[0];
             double y = s->values[1];
             double z = s->values[2];
-            //double x = state->as<ob::RealVectorStateSpace::StateType>()->values[0]; 
-            //double y = state->as<ob::RealVectorStateSpace::StateType>()->values[1]; 
-            //double z = state->as<ob::RealVectorStateSpace::StateType>()->values[2];
 
             Eigen::Isometry3d tf;
             tf = Eigen::Isometry3d::Identity();
@@ -567,14 +560,13 @@ int main(int argc, char* argv[])
     ds::WorldPtr world = std::make_shared<ds::World>();
     world->getConstraintSolver()->setCollisionDetector(
             new dc::BulletCollisionDetector());
-    //    world->setGravity(Eigen::Vector3d(0.0, 0.0, -9.8));
 
     std::string prefix = getWorkingDirectory();
 
     dd::SkeletonPtr chicago =
         du::SdfParser::readSkeleton(prefix + std::string("/Chicago.sdf"));
     setAllColors(chicago, Eigen::Vector3d(0.57, 0.6, 0.67));
-    //setAllColors(chicago, Eigen::Vector3d(0.0, 0.0, 1.0));
+
     dd::SkeletonPtr huav = dd::Skeleton::create("huav");
     dd::SkeletonPtr huavball = dd::Skeleton::create("huavball");
 
@@ -594,8 +586,8 @@ int main(int argc, char* argv[])
 
 
 
-    double xs, ys, zs, vxs; //, qxs, qys, qzs, qws, vxs;
-    double xf, yf, zf, vxf;// qyf, qzf, qwf, vxf;
+    double xs, ys, zs, vxs; 
+    double xf, yf, zf, vxf;
 
     std::ifstream posfile("positions.txt");
     std::string posline;
@@ -660,10 +652,9 @@ int main(int argc, char* argv[])
     std::cout << anglerad << " " << xs + raduis*cos(anglerad) <<" " <<ys + raduis*sin(anglerad)<<  std::endl;
     Eigen::Vector3d start1(xs, ys, zs);
     Eigen::Vector3d finish1(xs + raduis*cos(anglerad), ys + raduis*sin(anglerad), maxHeightFinish);
-    //Eigen::Vector4d qfinish1(0,0,0,1);
+
     Eigen::Vector2d astart1(0, 0);
     Eigen::Vector2d afinish1(10, anglerad);
-    //std::cout << qfinish1 << std::endl;
 
     Eigen::Vector3d start2(0, 0, 0);
     Eigen::Vector3d finish2(xf - raduis*cos(anglerad), yf - raduis*sin(anglerad), maxHeightFinish);
@@ -672,7 +663,7 @@ int main(int argc, char* argv[])
 
     Eigen::Vector3d start3(0, 0, 0);
     Eigen::Vector3d finish3(xf, yf, zf);
-    //std::cout << xf << " " << yf << " " << zf << std::endl;
+
     Eigen::Vector2d astart3(0, 0);
     Eigen::Vector2d afinish3(0, 0);
 
@@ -688,8 +679,7 @@ int main(int argc, char* argv[])
         std::ifstream file("result.txt");
         std::string line = getLastLine(file);
         file.close();
-        // float x,y,z;
-        // file >> x>>y>>z;
+
         std::cout << line << '\n';
         std::string delimiter = " ";
 
@@ -700,11 +690,9 @@ int main(int argc, char* argv[])
         float linear[arsize];
         while ((pos = line.find(delimiter)) != std::string::npos && i < arsize) {
             token = line.substr(0, pos);
-            // std::cout << token << std::endl;
             linear[i] = std::stof(token);
             line.erase(0, pos + delimiter.length());
             i++;
-            // std::cout << token << std::endl;
         }
 
         start2(0) = linear[0];
@@ -756,7 +744,6 @@ int main(int argc, char* argv[])
         afinish3(0) = 0;
         afinish3(1) = linear[4];
 
-        //std::cout << start3 << " " << qstart3 << std::endl;
 
         QuadrotorEnvironment env2(QuadrotorType::Landing);
         env2.setWorld(world);
@@ -765,17 +752,10 @@ int main(int argc, char* argv[])
 
     dd::SkeletonPtr uavball = world->getSkeleton("huav");
     world->removeSkeleton(uavball);
-
-    //tf = Eigen::Isometry3d::Identity();
-    //tf.translation() = start;
-
-    //MyWindow window(world);
-    //moveSkeleton(huav, tf);
-    //moveSkeleton(huavball, tf);
+    MyWindow window(world);
 
     //std::thread t([&]()
     //{
-        // std::this_thread::sleep_for(std::chrono::seconds(1));
         //while (true) 
         //{
             std::ifstream fin("result.txt");
@@ -786,37 +766,25 @@ int main(int argc, char* argv[])
                 cnt ++;
                 float x, y, z, ign;
                 float angz, angx;
-                //float rx, ry, rz, rw;
                 fin >> x >> y >> z >> ign >> angz >> ign >>
-                angx >> ign >> ign >> ign >> ign >> ign;  // >> ign >> ign >> ign;
+                angx >> ign >> ign >> ign >> ign >> ign;  
 
                 Eigen::Isometry3d tf = Eigen::Isometry3d::Identity();
 
 
                 Eigen::Quaterniond quat(Eigen::AngleAxisd(angz, Eigen::Vector3d::UnitZ())*Eigen::AngleAxisd(angx, Eigen::Vector3d::UnitX()));
-                Eigen::Quaterniond quat1(1,0,0,0);
 
                 tf.rotate(quat);
                 tf.translation() = Eigen::Vector3d(x, y, z);
                 
                 if (cnt % 100 == 1){ 
-                    //createBall(huav1, Eigen::Vector3d(4, 4, 4), tf);
-                    /*std::string name = std::string("huav") + std::to_string(cnt);
-                    dd::SkeletonPtr huav1;// =  dd::Skeleton::create(name);
-                    huav1 = du::SdfParser::readSkeleton(prefix + std::string("/uav.sdf"));
-                    moveSkeleton(huav1, tf);
-                    //setAllColors(huav1, Eigen::Vector3d(1, 1, 0));
-                    huav1->setName(name);
-                    world->addSkeleton(huav1);
-                    moveSkeleton(huav1, tf);
-                    */
                     
-                    dd::SkeletonPtr huav1 = huav->clone();// =  dd::Skeleton::create(name);
+                    dd::SkeletonPtr huav1 = huav->clone();
                     world->addSkeleton(huav1);
                     moveSkeleton(huav1, tf);
                 }
 
-                //window.setViewTrack(Eigen::Vector3d(x, y, z), quat1);
+                window.setViewTrack(Eigen::Vector3d(x, y, z), Eigen::Quaterniond(1,0,0,0));
                 //std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
             }
@@ -825,7 +793,6 @@ int main(int argc, char* argv[])
     //}); 
 
 
-    MyWindow window(world);
     glutInit(&argc, argv);
     window.initWindow(640 * 2, 480 * 2, "SDF");
     glutMainLoop();
