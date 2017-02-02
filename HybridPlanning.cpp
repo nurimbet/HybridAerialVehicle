@@ -217,10 +217,10 @@ class QuadrotorEnvironment {
 
             // this will run the algorithm for one second
             if(typeGlob == QuadrotorType::TakeOff) {
-                ss_->solve(60 * 1 * 20);
+                ss_->solve(60 * 1 * 2);
             }
             else{
-                ss_->solve(60 * 4 * 7.5);
+                ss_->solve(60 * 1 * 1);
             }
 
 
@@ -233,9 +233,18 @@ class QuadrotorEnvironment {
                 // p.printAsMatrix(std::cout);
                 std::ofstream vertices("vertices.txt");
                 std::ofstream resultfile;
+                std::ofstream quadrofile;
                 resultfile.open("result.txt", std::ios::app);
+                if(typeGlob == QuadrotorType::TakeOff) {
+                    quadrofile.open("take_off.txt", std::ios::trunc);
+                }
+                else{
+                    quadrofile.open("landing.txt", std::ios::trunc);
+                }
                 // ss_->getSolutionPath().asGeometric().printAsMatrix(resultfile);
                 p.printAsMatrix(resultfile);
+                p.printAsMatrix(quadrofile);
+
                 ob::PlannerData pdat(ss_->getSpaceInformation());
                 ss_->getPlannerData(pdat);
                 for (std::size_t i = 0; i < pdat.numVertices(); ++i) {
@@ -434,7 +443,7 @@ class FixedWingEnvironment {
             ss_->setup();
 
             // this will run the algorithm for one second
-            ss_->solve(60 * 1* 20);
+            ss_->solve(60 * 1* 2);
 
 
             const std::size_t ns = ss_->getProblemDefinition()->getSolutionCount();
@@ -444,10 +453,55 @@ class FixedWingEnvironment {
                 p.interpolate();
 
                 // p.printAsMatrix(std::cout);
+                std::ofstream vertices("vertices_fw.txt");
                 std::ofstream resultfile;
+                std::ofstream cruise;
                 resultfile.open("result.txt", std::ios::app);
+                cruise.open("cruise.txt", std::ios::trunc);
                 // ss_->getSolutionPath().asGeometric().printAsMatrix(resultfile);
                 p.printAsMatrix(resultfile);
+                p.printAsMatrix(cruise);
+
+                ob::PlannerData pdat(ss_->getSpaceInformation());
+                ss_->getPlannerData(pdat);
+                for (std::size_t i = 0; i < pdat.numVertices(); ++i) {
+                    // std::cout << pdat.getVertex(i)<<std::endl;
+
+                    printEdge(vertices, ss_->getStateSpace(), pdat.getVertex(i));
+                    vertices << std::endl;
+                }
+        std::ofstream ofs_e("edges_fx.txt");
+        std::vector<unsigned int> edge_list;
+        std::vector<double> reals;
+        std::vector<double> realsOld;
+        bool isMajorTree = false;
+        ob::State* s3 = FWspace->allocState();
+        for (unsigned int i(0); i < pdat.numVertices(); ++i) {
+            unsigned int n_edge = pdat.getEdges(i, edge_list);
+            const ob::State* s1 = pdat.getVertex(i).getState();
+            isMajorTree = pdat.getVertex(i).getTag();
+            for (unsigned int i2(0); i2 < n_edge; ++i2) {
+                const ob::State* s2 = pdat.getVertex(edge_list[i2]).getState();
+                double step = 0.05;
+                if (FWspace->distance(s1, s2) < 0.03) {
+                    step = 0.2;
+                }
+                FWspace->copyToReals(realsOld, s1);
+                for (double t = step; t <= 1.01; t += step) {
+                    FWspace->interpolate(s1, s2, t, s3);
+                    FWspace->copyToReals(reals, s3);
+                    for (const auto& r : realsOld)
+                        ofs_e << r << " ";
+                    realsOld = reals;
+                    for (const auto& r : reals)
+                        ofs_e << r << " ";
+                    //
+                    //ofs_e << "0x" << std::hex << (isMajorTree ? 0x4488AA : 0xDD6060)
+                    //      << std::endl;
+                    ofs_e << std::endl;
+                }
+            }
+        }
                 return true;
             } else
                 return false;
@@ -522,6 +576,14 @@ void FixedWingPostIntegration(const ob::State* /*state*/,
     ob::ScopedState<ob::CompoundStateSpace> start(FWspace);
 
 }
+        void printEdge(std::ostream& os, const ob::StateSpacePtr& space,
+                const ob::PlannerDataVertex& vertex) {
+            std::vector<double> reals;
+            if (vertex != ob::PlannerData::NO_VERTEX) {
+                space->copyToReals(reals, vertex.getState());
+                for (size_t j(0); j < reals.size(); ++j) os << " " << reals[j];
+            }
+        }
 
 oc::SimpleSetupPtr ss_;
 ds::WorldPtr world_;
@@ -565,7 +627,7 @@ int main(int argc, char* argv[])
 
     dd::SkeletonPtr chicago =
         du::SdfParser::readSkeleton(prefix + std::string("/Chicago.sdf"));
-    setAllColors(chicago, Eigen::Vector3d(0.57, 0.6, 0.67));
+    //setAllColors(chicago, Eigen::Vector3d(0.57, 0.6, 0.67));
 
     dd::SkeletonPtr huav = dd::Skeleton::create("huav");
     dd::SkeletonPtr huavball = dd::Skeleton::create("huavball");
@@ -579,25 +641,39 @@ int main(int argc, char* argv[])
     world->addSkeleton(huav);
     huav = du::SdfParser::readSkeleton(prefix + std::string("/uav.sdf"));
 
-    setAllColors(huav, Eigen::Vector3d(1, 0, 0));
 
     world->addSkeleton(chicago);
     world->addSkeleton(huav);
 
 
 
+    double chir, chig, chib, uavr, uavg, uavb; 
     double xs, ys, zs, vxs; 
     double xf, yf, zf, vxf;
+    int step;
 
-    std::ifstream posfile("positions.txt");
+
+    std::ifstream posfile("setup.txt");
     std::string posline;
+
+    std::getline(posfile, posline);
+    std::istringstream coloriss(posline); 
+    coloriss >> chir >> chig >> chib >> uavr >> uavg >> uavb;
+
+    setAllColors(chicago, Eigen::Vector3d(chir, chig, chib));
+    setAllColors(huav, Eigen::Vector3d(uavr, uavg, uavb));
+
     std::getline(posfile, posline);
     std::istringstream posisss(posline); 
     posisss >> xs >> ys >> zs >> vxs;
+
     std::getline(posfile, posline);
     std::istringstream posissf(posline); 
     posissf >> xf >> yf >> zf >> vxf;
 
+    std::getline(posfile, posline);
+    std::istringstream stepiss(posline); 
+    stepiss >> step;
 
     dd::SkeletonPtr heightbox = dd::Skeleton::create("heightbox");
     tf = Eigen::Isometry3d::Identity();
@@ -775,9 +851,9 @@ int main(int argc, char* argv[])
                 Eigen::Quaterniond quat(Eigen::AngleAxisd(angz, Eigen::Vector3d::UnitZ())*Eigen::AngleAxisd(angx, Eigen::Vector3d::UnitX()));
 
                 tf.rotate(quat);
-                tf.translation() = Eigen::Vector3d(x, y, z);
+                tf.translation() = Eigen::Vector3d(x, y, z+10);
                 
-                if (cnt % 100 == 1){ 
+                if (cnt % step == 1){ 
                     
                     dd::SkeletonPtr huav1 = huav->clone();
                     world->addSkeleton(huav1);

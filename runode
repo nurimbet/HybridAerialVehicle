@@ -1,0 +1,4 @@
+
+
+tspan = [0 1];
+[t,y] = ode45('QuadrotorOde', tspan, q0);

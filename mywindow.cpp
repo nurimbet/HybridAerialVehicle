@@ -6,61 +6,117 @@ MyWindow::MyWindow(const ds::WorldPtr& world)
 { 
     setWorld(world); 
     //mZoom = 0.00040;
-    mZoom = 0.00075;
     mTranslate = true;
+    double xw,yw,zw,zoomw, ptlr, ptlg, ptlb, cr, cg, cb, pwidth;
+    std::ifstream finw("window.txt");
+    finw >> xw >> yw >> zw >> zoomw >> pwidth >> ptlr >> ptlg >> ptlb >> cr >> cg >> cb;
+    mZoom = zoomw;
+    mTrans = -Eigen::Vector3d(xw, yw, zw)*1000.0;//-Eigen::Vector3d(20,20,20);
     // TODO add dart version detection here
 }
 
 void MyWindow::drawSkels() {
-    mTrans = -Eigen::Vector3d(1500,2600,200)*1000.0;//-Eigen::Vector3d(20,20,20);
+    double xw,yw,zw,zoomw, ptlr, ptlg, ptlb, cr, cg, cb, pwidth;
+    std::ifstream finw("window.txt");
+    finw >> xw >> yw >> zw >> zoomw >> pwidth >> ptlr >> ptlg >> ptlb >> cr >> cg >> cb;
+    //std::cout << xw << " "<< yw << " " << zw << " " <<  zoomw;
+
+    //mZoom = 0.00075;
+    //mTrans = -Eigen::Vector3d(1500,2600,200)*1000.0;//-Eigen::Vector3d(20,20,20);
     std::lock_guard<std::mutex> lock(readMutex);
     // Make sure lighting is turned on and that polygons get filled in
-    glEnable(GL_LIGHTING);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glPolygonMode(GL_FRONT, GL_FILL);
+    //glDisable(GL_LIGHT0);
+    //glShadeModel(GL_SMOOTH);
 
-    glLineWidth(3); 
-    glColor3f(0.4, 0.8, 0.3);
     glBegin(GL_LINES);
 
-    std::ifstream fin("result.txt");
     float x, y, z, ign;
     float angz, angx;
-    fin >> x >> y >> z >> ign >> angz >> ign >>
+    float x1, y1, z1;
+    //glLineWidth(1); 
+    glColor3f(1,1,0);
+    std::ifstream edges("edges_fx.txt");
+    while(!edges.eof()){
+        edges >> x >> y >> z >> ign >> ign >> ign >> ign >> ign >>
+            x1 >> y1 >> z1 >> ign >> ign >> ign >> ign >> ign;  
+        //std::cout << x << std::endl;
+        glVertex3f(x, y, z);
+        glVertex3f(x1, y1, z1);
+
+    }
+    glEnd();
+
+    glLineWidth(4); 
+    glBegin(GL_LINES);
+    glColor3f(ptlr, ptlg, ptlb);
+    std::ifstream fin_to("take_off.txt");
+    fin_to >> x >> y >> z >> ign >> angz >> ign >>
         angx >> ign >> ign >> ign >> ign >> ign;  
-    glVertex3f(x, y, z);
-    while(!fin.eof()){
-        fin >> x >> y >> z >> ign >> angz >> ign >>
+    glVertex3f(x, y, z+10);
+    while(!fin_to.eof()){
+        fin_to >> x >> y >> z >> ign >> angz >> ign >>
             angx >> ign >> ign >> ign >> ign >> ign;  
 
-        glVertex3f(x, y, z);
-        glVertex3f(x, y, z);
+        glVertex3f(x, y, z+10);
+        glVertex3f(x, y, z+10);
 
     }
+
+    glColor3f(cr, cg, cb);
+    std::ifstream fin_c("cruise.txt");
+    fin_c >> x >> y >> z >> ign >> angz >> ign >>
+        angx >> ign >> ign >> ign >> ign >> ign;  
+    while(!fin_c.eof()){
+        fin_c >> x >> y >> z >> ign >> angz >> ign >>
+            angx >> ign >> ign >> ign >> ign >> ign;  
+
+        glVertex3f(x, y, z+10);
+        glVertex3f(x, y, z+10);
+
+    }
+
+    glColor3f(ptlr, ptlg, ptlb);
+    std::ifstream fin_l("landing.txt");
+    fin_l >> x >> y >> z >> ign >> angz >> ign >>
+        angx >> ign >> ign >> ign >> ign >> ign;  
+    while(!fin_l.eof()){
+        fin_l >> x >> y >> z >> ign >> angz >> ign >>
+            angx >> ign >> ign >> ign >> ign >> ign;  
+
+        glVertex3f(x, y, z+10);
+        glVertex3f(x, y, z+10);
+
+    }
+    glVertex3f(x, y, z+10);
+
+
     glEnd();
-/*  
-    glLineWidth(2); 
-    glColor3f(0.33, 0.66, 0.99);
-    glBegin(GL_LINES);
 
-    int x1, y1;
-    int xmax = 3000;
-    int ymax = 4000;
+    /*  
+        glLineWidth(2); 
+        glColor3f(0.33, 0.66, 0.99);
+        glBegin(GL_LINES);
 
-    for (int ii = 0; ii <= xmax; ii+=10) 
-    {
+        int x1, y1;
+        int xmax = 3000;
+        int ymax = 4000;
+
+        for (int ii = 0; ii <= xmax; ii+=10) 
+        {
         glVertex3f(ii, 0, 10);
         glVertex3f(ii, ymax, 10);
-    }
-    for (int ii = 0; ii <= ymax; ii+=10) 
-    {
+        }
+        for (int ii = 0; ii <= ymax; ii+=10) 
+        {
         glVertex3f(0, ii, 10);
         glVertex3f(xmax, ii, 10);
-    }
-        //float rx, ry, rz, rw;
+        }
+    //float rx, ry, rz, rw;
 
 
     glEnd();
-*/
+     */
 
     SimWindow::drawSkels();
 }
