@@ -35,7 +35,7 @@ void MyWindow::drawSkels() {
     float angz, angx;
     float x1, y1, z1;
     //glLineWidth(1); 
-    glColor3f(1,1,0);
+    glColor3f(1,1,1);
     std::ifstream edges("edges_fx.txt");
     while(!edges.eof()){
         edges >> x >> y >> z >> ign >> ign >> ign >> ign >> ign >>
