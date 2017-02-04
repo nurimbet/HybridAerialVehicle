@@ -31,6 +31,9 @@ constexpr double kMaxWidth = 3000.0;
 constexpr double kMaxLength = 4000.0;
 constexpr double kMaxHeight = 500.0;
 
+
+int solve_takeoff, solve_cruise, solve_landing;
+
 class QControlSpace : public oc::RealVectorControlSpace {
     public:
         QControlSpace(const ob::StateSpacePtr& stateSpace)
@@ -84,8 +87,8 @@ class QuadrotorEnvironment {
             Qspace->as<ob::CompoundStateSpace>()
                 ->as<ob::RealVectorStateSpace>(3)
                 ->setBounds(velboundx);
-            angleboundz.setLow(-0.785*4);
-            angleboundz.setHigh(0.785*4);
+            angleboundz.setLow(-0.785*8);
+            angleboundz.setHigh(0.785*8);
             Qspace->as<ob::CompoundStateSpace>()
                 ->as<ob::RealVectorStateSpace>(2)
                 ->setBounds(angleboundz);
@@ -95,14 +98,14 @@ class QuadrotorEnvironment {
                 ->as<ob::RealVectorStateSpace>(4)
                 ->setBounds(angleboundx);
 
-            controlbounds.setLow(-0.1);
-            controlbounds.setHigh(0.1);
+            controlbounds.setLow(-0.6);
+            controlbounds.setHigh(0.6);
 
             controlbounds.setLow(1, -5);
             controlbounds.setHigh(1, 5);
 
-            controlbounds.setLow(2, -5);
-            controlbounds.setHigh(2, 5);
+            controlbounds.setLow(2, -4.9);
+            controlbounds.setHigh(2, 4.9);
 
             cspace->as<QControlSpace>()->setBounds(controlbounds);
 
@@ -136,7 +139,7 @@ class QuadrotorEnvironment {
 
             Qspace->setup();
 
-            ss_->setPlanner(ob::PlannerPtr(new oc::RRT(ss_->getSpaceInformation())));
+            ss_->setPlanner(ob::PlannerPtr(new oc::SST(ss_->getSpaceInformation())));
             ss_->setStateValidityChecker(std::bind(&QuadrotorEnvironment::isStateValid,
                         this, std::placeholders::_1));
         }
@@ -217,10 +220,10 @@ class QuadrotorEnvironment {
 
             // this will run the algorithm for one second
             if(typeGlob == QuadrotorType::TakeOff) {
-                ss_->solve(60 * 1 * 2);
+                ss_->solve(60 * solve_takeoff);
             }
             else{
-                ss_->solve(60 * 1 * 1);
+                ss_->solve(60 * solve_landing);
             }
 
 
@@ -229,6 +232,8 @@ class QuadrotorEnvironment {
             if (ss_->haveSolutionPath()) {
                 oc::PathControl& p = ss_->getSolutionPath();
                 p.interpolate();
+                std::cout << "Time is: " << p.length() << std::endl;
+                std::cout << "Path length is: " << p.asGeometric().length() << std::endl;
 
                 // p.printAsMatrix(std::cout);
                 std::ofstream vertices("vertices.txt");
@@ -409,7 +414,7 @@ class FixedWingEnvironment {
 
             FWspace->setup();
 
-            ss_->setPlanner(ob::PlannerPtr(new oc::RRT(ss_->getSpaceInformation())));
+            ss_->setPlanner(ob::PlannerPtr(new oc::SST(ss_->getSpaceInformation())));
             ss_->setStateValidityChecker(std::bind(&FixedWingEnvironment::isStateValid,
                         this, std::placeholders::_1));
         }
@@ -443,7 +448,7 @@ class FixedWingEnvironment {
             ss_->setup();
 
             // this will run the algorithm for one second
-            ss_->solve(60 * 1* 2);
+            ss_->solve(60 * solve_cruise);
 
 
             const std::size_t ns = ss_->getProblemDefinition()->getSolutionCount();
@@ -451,6 +456,8 @@ class FixedWingEnvironment {
             if (ss_->haveSolutionPath()) {
                 oc::PathControl& p = ss_->getSolutionPath();
                 p.interpolate();
+                std::cout << "Time is: " << p.length() << std::endl;
+                std::cout << "Path length is: " << p.asGeometric().length() << std::endl;
 
                 // p.printAsMatrix(std::cout);
                 std::ofstream vertices("vertices_fw.txt");
@@ -675,6 +682,10 @@ int main(int argc, char* argv[])
     std::istringstream stepiss(posline); 
     stepiss >> step;
 
+    std::getline(posfile, posline);
+    std::istringstream solve_time(posline); 
+    solve_time >> solve_takeoff  >> solve_cruise >> solve_landing;
+
     dd::SkeletonPtr heightbox = dd::Skeleton::create("heightbox");
     tf = Eigen::Isometry3d::Identity();
     int kk = 2;
@@ -824,7 +835,13 @@ int main(int argc, char* argv[])
         QuadrotorEnvironment env2(QuadrotorType::Landing);
         env2.setWorld(world);
         env2.plan(start3, finish3, astart3, afinish3);
+        std::ifstream file2("result.txt");
+        line = getLastLine(file2);
+        file2.close();
+
+        std::cout << line << '\n';
     }
+    else{
 
     dd::SkeletonPtr uavball = world->getSkeleton("huav");
     world->removeSkeleton(uavball);
@@ -873,7 +890,7 @@ int main(int argc, char* argv[])
     window.initWindow(640 * 2, 480 * 2, "SDF");
     glutMainLoop();
 
-//   t.join();
-
+  // t.join();
+}
     return 0;
 }

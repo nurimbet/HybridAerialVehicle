@@ -7,18 +7,18 @@ MyWindow::MyWindow(const ds::WorldPtr& world)
     setWorld(world); 
     //mZoom = 0.00040;
     mTranslate = true;
-    double xw,yw,zw,zoomw, ptlr, ptlg, ptlb, cr, cg, cb, pwidth;
+    double xw,yw,zw,zoomw;
     std::ifstream finw("window.txt");
-    finw >> xw >> yw >> zw >> zoomw >> pwidth >> ptlr >> ptlg >> ptlb >> cr >> cg >> cb;
+    finw >> xw >> yw >> zw >> zoomw;
     mZoom = zoomw;
     mTrans = -Eigen::Vector3d(xw, yw, zw)*1000.0;//-Eigen::Vector3d(20,20,20);
     // TODO add dart version detection here
 }
 
 void MyWindow::drawSkels() {
-    double xw,yw,zw,zoomw, ptlr, ptlg, ptlb, cr, cg, cb, pwidth;
+    double ign, ptlr, ptlg, ptlb, cr, cg, cb, pwidth, treer, treeg, treeb, path_bool;
     std::ifstream finw("window.txt");
-    finw >> xw >> yw >> zw >> zoomw >> pwidth >> ptlr >> ptlg >> ptlb >> cr >> cg >> cb;
+    finw >> ign >> ign >> ign >> ign >> pwidth >> ptlr >> ptlg >> ptlb >> cr >> cg >> cb >> treer >> treeg >> treeb >> path_bool;
     //std::cout << xw << " "<< yw << " " << zw << " " <<  zoomw;
 
     //mZoom = 0.00075;
@@ -31,11 +31,13 @@ void MyWindow::drawSkels() {
 
     glBegin(GL_LINES);
 
-    float x, y, z, ign;
+    float x, y, z;
     float angz, angx;
     float x1, y1, z1;
     //glLineWidth(1); 
-    glColor3f(1,1,1);
+    if (path_bool == 0 || path_bool > 1)
+    {
+    glColor3f(treer, treeg, treeb);
     std::ifstream edges("edges_fx.txt");
     while(!edges.eof()){
         edges >> x >> y >> z >> ign >> ign >> ign >> ign >> ign >>
@@ -46,6 +48,9 @@ void MyWindow::drawSkels() {
 
     }
     glEnd();
+    }
+    if (path_bool >= 1)
+    { 
 
     glLineWidth(4); 
     glBegin(GL_LINES);
@@ -92,6 +97,7 @@ void MyWindow::drawSkels() {
 
 
     glEnd();
+    }
 
     /*  
         glLineWidth(2); 
